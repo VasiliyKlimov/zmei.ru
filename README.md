@@ -125,9 +125,10 @@
                 return;
             }
             snake.forEach((segment, index) => {
-                drawRect(segment.x, segment.y, "☠️");
+                let emoji = index === 0 ? "🤬" : "☠️";
+                drawRect(segment.x, segment.y, emoji);
             });
-            drawRect(food.x, food.y, "white");
+            drawRect(food.x, food.y, "😐");
         }
 
         function gameLoop() {
