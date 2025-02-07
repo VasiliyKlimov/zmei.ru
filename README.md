@@ -28,13 +28,27 @@
         let snake = [{ x: 200, y: 200 }];
         let direction = { x: 0, y: 0 };
         let food = { x: 100, y: 100 };
+        let gameOver = false;
 
         function drawRect(x, y, color) {
             ctx.fillStyle = color;
             ctx.fillRect(x, y, gridSize, gridSize);
         }
 
+        function checkCollision() {
+            let head = snake[0];
+            if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height) {
+                gameOver = true;
+            }
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    gameOver = true;
+                }
+            }
+        }
+
         function update() {
+            if (gameOver) return;
             if (direction.x === 0 && direction.y === 0) return; // Prevent moving before key press
             let head = { x: snake[0].x + direction.x * gridSize, y: snake[0].y + direction.y * gridSize };
             snake.unshift(head);
@@ -46,10 +60,17 @@
             } else {
                 snake.pop();
             }
+            checkCollision();
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (gameOver) {
+                ctx.fillStyle = "red";
+                ctx.font = "30px Arial";
+                ctx.fillText("GAME OVER", canvas.width / 4, canvas.height / 2);
+                return;
+            }
             snake.forEach((segment, index) => {
                 drawRect(segment.x, segment.y, index === 0 ? "red" : "green");
             });
