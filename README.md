@@ -11,7 +11,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlMvijLrS5W0Okf3DqXCFjJr5cD_WZjOBPVB7KwzFy__IlDeEHn0uEA-JwF4JAVVHfqww&usqp=CAU') no-repeat center center fixed; background-size: cover;
+            background: url('https://a.d-cd.net/ae28054s-960.jpg') no-repeat center center fixed; background-size: cover;
             margin: 0;
             color: white;
             font-family: Arial, sans-serif;
