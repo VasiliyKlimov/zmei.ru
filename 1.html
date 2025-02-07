@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Змейка ловит мышей</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: url('https://i.imgur.com/q2LGcNQ.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+        canvas {
+            display: block;
+        }
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 20px;
+        }
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 30px;
+            display: none;
+            text-align: center;
+        }
+        #gameOver span {
+            color: yellow;
+        }
+        #restartButton {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="score">Score: 0</div>
+    <div id="gameOver">Game Over!<br>Your score: <span>0</span><br><button id="restartButton">Restart</button></div>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let snake = [{ x: canvas.width / 2, y: canvas.height / 2 }];
+        let food = { x: Math.random() * canvas.width, y: Math.random() * canvas.height };
+        let snakeSize = 20;
+        let speed = 2;
+        let baseSpeed = 2; // Базовая скорость для возвращения после бонуса
+        let mouseX = canvas.width / 2;
+        let mouseY = canvas.height / 2;
+        let foodSpeed = 1;
+        let foodDirX = Math.random() > 0.5 ? 1 : -1;
+        let foodDirY = Math.random() > 0.5 ? 1 : -1;
+        let score = 0;
+        let gameOver = false;
+        let level = 1;
+
+        let bonus = null;
+        let eatSound = new Audio("eat.mp3"); // Замените "eat.mp3" на свой звуковой файл
+
+        const scoreDisplay = document.getElementById("score");
+        const gameOverDisplay = document.getElementById("gameOver");
+        const gameOverScore = gameOverDisplay.querySelector("span");
+        const restartButton = document.getElementById("restartButton");
+
+        document.addEventListener("mousemove", function (event) {
+            mouseX = event.clientX;
+            mouseY = event.clientY;
+        });
+
+        restartButton.addEventListener("click", function () {
+            restartGame();
+        });
+
+        function gameLoop() {
+            if (gameOver) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            let head = { x: snake[0].x, y: snake[0].y };
+            let angle = Math.atan2(mouseY - head.y, mouseX - head.x);
+            head.x += Math.cos(angle) * speed;
+            head.y += Math.sin(angle) * speed;
+            snake.unshift(head);
+
+            if (Math.hypot(head.x - food.x, head.y - food.y) < snakeSize) {
+                eatSound.play();
+                food.x = Math.random() * canvas.width;
+                food.y = Math.random() * canvas.height;
+                foodDirX = Math.random() > 0.5 ? 1 : -1;
+                foodDirY = Math.random() > 0.5 ? 1 : -1;
+                score++;
+                scoreDisplay.textContent = "Score: " + score;
+
+                if (score % 5 === 0) { // Уровень повышается каждые 5 очков
+                    level++;
+                    speed = baseSpeed + level * 0.5; // Увеличиваем скорость
+                }
+            } else {
+                snake.pop();
+            }
+
+            food.x += foodDirX * foodSpeed;
+            food.y += foodDirY * foodSpeed;
+            if (food.x < 0 || food.x > canvas.width) foodDirX *= -1;
+            if (food.y < 0 || food.y > canvas.height) foodDirY *= -1;
+
+            if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height || selfCollision()) {
+                endGame();
+            }
+
+            if (bonus) {
+                ctx.fillStyle = "yellow";
+                ctx.beginPath();
+                ctx.arc(bonus.x, bonus.y, 10, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (Math.hypot(head.x - bonus.x, head.y - bonus.y) < snakeSize) {
+                    if (bonus.type === "speedUp") {
+                        speed *= 2;
+                        setTimeout(() => { speed = baseSpeed + (level * 0.5); }, bonus.duration); // Возвращаем скорость
+                    }
+                    bonus = null;
+                }
+            }
+
+
+            ctx.fillStyle = "green";
+            snake.forEach(segment => {
+                ctx.fillRect(segment.x, segment.y, snakeSize, snakeSize);
+            });
+
+            ctx.fillStyle = "red";
+            ctx.beginPath();
+            ctx.arc(food.x, food.y, 10, 0, Math.PI * 2);
+            ctx.fill();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function selfCollision() {
+            for (let i = 1; i < snake.length; i++) {
+                if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function endGame() {
+            gameOver = true;
+            gameOverDisplay.style.display = "block";
+            gameOverScore.textContent = score;
+        }
+
+        function restartGame() {
+            gameOver = false;
+            gameOverDisplay.style.display = "none";
+            snake = [{ x: canvas.width / 2, y: canvas.height / 2 }];
+            food = { x: Math.random() * canvas.width, y: Math.random() * canvas.height };
+            score = 0;
+            level = 1;
+            speed = baseSpeed;
+            scoreDisplay.textContent = "Score: 0";
+            gameLoop();
+        }
+
+        function createBonus() {
+          if (!bonus) { //Чтобы бонус не появлялся пока предыдущий не исчезнет
+            bonus = {
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                type: "speedUp",
+                duration: 5000
+            };
+          }
+        }
+
+        setInterval(createBonus, 10000); // Создаем бонус каждые 10 секунд
+
+        gameLoop();
+    </script>
+</body>
+</html>
