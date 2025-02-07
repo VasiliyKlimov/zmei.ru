@@ -52,6 +52,8 @@
             if (direction.x === 0 && direction.y === 0) return; // Prevent moving before key press
             let head = { x: snake[0].x + direction.x * gridSize, y: snake[0].y + direction.y * gridSize };
             snake.unshift(head);
+            checkCollision();
+            if (gameOver) return;
             if (head.x === food.x && head.y === food.y) {
                 food = {
                     x: Math.floor(Math.random() * (canvas.width / gridSize)) * gridSize,
@@ -60,7 +62,6 @@
             } else {
                 snake.pop();
             }
-            checkCollision();
         }
 
         function draw() {
