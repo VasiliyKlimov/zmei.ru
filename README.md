@@ -33,20 +33,29 @@
             border: none;
             cursor: pointer;
         }
+        #highScores {
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     <div id="score">Score: 0</div>
     <canvas id="gameCanvas" width="400" height="400"></canvas>
     <button id="restartBtn" onclick="restartGame()">Restart</button>
+    <div id="highScores">
+        <h3>High Scores</h3>
+        <ul id="scoreList"></ul>
+    </div>
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         const scoreDisplay = document.getElementById("score");
         const restartBtn = document.getElementById("restartBtn");
+        const scoreList = document.getElementById("scoreList");
 
         const gridSize = 20;
         let snake, direction, food, gameOver, score;
+        let highScores = JSON.parse(localStorage.getItem("highScores")) || [];
 
         function init() {
             snake = [{ x: 200, y: 200 }];
@@ -81,7 +90,10 @@
             let head = { x: snake[0].x + direction.x * gridSize, y: snake[0].y + direction.y * gridSize };
             snake.unshift(head);
             checkCollision();
-            if (gameOver) return;
+            if (gameOver) {
+                saveScore();
+                return;
+            }
             if (head.x === food.x && head.y === food.y) {
                 score += 10;
                 scoreDisplay.innerText = "Score: " + score;
@@ -114,11 +126,29 @@
             draw();
         }
 
+        function saveScore() {
+            highScores.push(score);
+            highScores.sort((a, b) => b - a);
+            highScores = highScores.slice(0, 5);
+            localStorage.setItem("highScores", JSON.stringify(highScores));
+            updateHighScores();
+        }
+
+        function updateHighScores() {
+            scoreList.innerHTML = "";
+            highScores.forEach((s, index) => {
+                let li = document.createElement("li");
+                li.textContent = `${index + 1}. ${s}`;
+                scoreList.appendChild(li);
+            });
+        }
+
         function restartGame() {
             init();
         }
 
         init();
+        updateHighScores();
         setInterval(gameLoop, 100);
 
         document.addEventListener("keydown", (event) => {
