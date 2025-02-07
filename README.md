@@ -15,9 +15,9 @@
         }
         #score {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 20px;
+            top: 5px;
+            left: 5px;
+            font-size: 10px;
         }
         #gameOver {
             position: absolute;
@@ -29,8 +29,8 @@
             display: none;
         }
         #restartButton {
-            padding: 10px 20px;
-            font-size: 20px;
+            padding: 5px 10px;
+            font-size: 10px;
             background-color: #4CAF50;
             color: white;
             border: none;
@@ -61,7 +61,7 @@
         let direction = 'right'; // Initial direction
         let score = 0;
         let gameLoopInterval;
-        let gameSpeed = 150; // milliseconds between game updates (lower is faster)
+        let gameSpeed = 11150; // milliseconds between game updates (lower is faster)
         let isGameOver = false;
 
         // --- Functions ---
