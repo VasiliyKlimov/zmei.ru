@@ -119,8 +119,8 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             if (gameOver) {
                 ctx.fillStyle = "red";
-                ctx.font = "60px Arial";
-                ctx.fillText("💩", canvas.width / 2 - 15, canvas.height / 2);
+                ctx.font = "300px Arial";
+                ctx.fillText("💩", canvas.width / 4, canvas.height / 2);
                 restartBtn.style.display = "block";
                 return;
             }
