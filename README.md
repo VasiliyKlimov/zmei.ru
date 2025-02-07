@@ -71,9 +71,9 @@
             gameInterval = setInterval(gameLoop, speed);
         }
 
-        function drawRect(x, y, color) {
-            ctx.fillStyle = color;
-            ctx.fillRect(x, y, gridSize, gridSize);
+        function drawRect(x, y, emoji) {
+            ctx.font = "20px Arial";
+            ctx.fillText(emoji, x, y + 15);
         }
 
         function checkCollision() {
@@ -119,13 +119,13 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             if (gameOver) {
                 ctx.fillStyle = "red";
-                ctx.font = "600px Arial";
+                ctx.font = "300px Arial";
                 ctx.fillText("💩", canvas.width / 4, canvas.height / 2);
                 restartBtn.style.display = "block";
                 return;
             }
             snake.forEach((segment, index) => {
-                drawRect(segment.x, segment.y, index === 0 ? "red" : "green");
+                drawRect(segment.x, segment.y, "☠️");
             });
             drawRect(food.x, food.y, "white");
         }
