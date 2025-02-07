@@ -1,4 +1,4 @@
-<zmeika html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -11,6 +11,7 @@
             align-items: center;
             height: 100vh;
             background-color: black;
+            margin: 0;
         }
         canvas {
             background-color: #111;
@@ -34,6 +35,7 @@
         }
 
         function update() {
+            if (direction.x === 0 && direction.y === 0) return; // Prevent moving before key press
             let head = { x: snake[0].x + direction.x * gridSize, y: snake[0].y + direction.y * gridSize };
             snake.unshift(head);
             if (head.x === food.x && head.y === food.y) {
@@ -63,10 +65,10 @@
 
         document.addEventListener("keydown", (event) => {
             switch (event.key) {
-                case "ArrowUp": direction = { x: 0, y: -1 }; break;
-                case "ArrowDown": direction = { x: 0, y: 1 }; break;
-                case "ArrowLeft": direction = { x: -1, y: 0 }; break;
-                case "ArrowRight": direction = { x: 1, y: 0 }; break;
+                case "ArrowUp": if (direction.y === 0) direction = { x: 0, y: -1 }; break;
+                case "ArrowDown": if (direction.y === 0) direction = { x: 0, y: 1 }; break;
+                case "ArrowLeft": if (direction.x === 0) direction = { x: -1, y: 0 }; break;
+                case "ArrowRight": if (direction.x === 0) direction = { x: 1, y: 0 }; break;
             }
         });
     </script>
