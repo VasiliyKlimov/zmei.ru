@@ -1,72 +1,74 @@
-<!DOCTYPE html>
-<html>
+<zmeika html>
+<html lang="en">
 <head>
-    <title>Змейка ловит мышей</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
     <style>
-        /* ... (стили остаются без изменений) */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: black;
+        }
+        canvas {
+            background-color: #111;
+        }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
-    <div id="score">Score: 0</div>
-    <div id="gameOver">Game Over!<br>Your score: <span>0</span><br><button id="restartButton">Restart</button></div>
-
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
-        // ... (остальные переменные)
 
-        let eatSound = new Audio("eat.mp3");
-        eatSound.preload = "auto"; // Предзагрузка звука
+        const gridSize = 20;
+        let snake = [{ x: 200, y: 200 }];
+        let direction = { x: 0, y: 0 };
+        let food = { x: 100, y: 100 };
 
-        // ... (остальные функции)
+        function drawRect(x, y, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, gridSize, gridSize);
+        }
+
+        function update() {
+            let head = { x: snake[0].x + direction.x * gridSize, y: snake[0].y + direction.y * gridSize };
+            snake.unshift(head);
+            if (head.x === food.x && head.y === food.y) {
+                food = {
+                    x: Math.floor(Math.random() * (canvas.width / gridSize)) * gridSize,
+                    y: Math.floor(Math.random() * (canvas.height / gridSize)) * gridSize
+                };
+            } else {
+                snake.pop();
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            snake.forEach((segment, index) => {
+                drawRect(segment.x, segment.y, index === 0 ? "red" : "green");
+            });
+            drawRect(food.x, food.y, "white");
+        }
 
         function gameLoop() {
-            // ... (основной цикл игры)
-
-            if (Math.hypot(head.x - food.x, head.y - food.y) < snakeSize) {
-                eatSound.play(); // Воспроизводим звук здесь!
-                // ... (остальная логика поедания)
-            }
-
-            if (bonus) {
-                ctx.fillStyle = "yellow"; // Или другой цвет для бонуса
-                ctx.strokeStyle = "black"; // Добавим обводку
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(bonus.x, bonus.y, 10, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.stroke();
-
-                if (Math.hypot(head.x - bonus.x, head.y - bonus.y) < snakeSize) {
-                    // ... (логика получения бонуса)
-                    bonus = null; // Убираем бонус после использования
-                } else if (Date.now() - bonus.startTime > bonus.duration) { // Проверяем время жизни бонуса
-                  bonus = null; // Убираем бонус, если время вышло
-                }
-            }
-
-
-            // ... (отрисовка змейки и еды)
-            requestAnimationFrame(gameLoop);
+            update();
+            draw();
         }
 
+        setInterval(gameLoop, 100);
 
-        function createBonus() {
-            if (!bonus) {
-                bonus = {
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    type: "speedUp",
-                    duration: 5000,
-                    startTime: Date.now() // Запоминаем время создания бонуса
-                };
+        document.addEventListener("keydown", (event) => {
+            switch (event.key) {
+                case "ArrowUp": direction = { x: 0, y: -1 }; break;
+                case "ArrowDown": direction = { x: 0, y: 1 }; break;
+                case "ArrowLeft": direction = { x: -1, y: 0 }; break;
+                case "ArrowRight": direction = { x: 1, y: 0 }; break;
             }
-        }
-
-        // ... (остальной код)
-
-        gameLoop();
+        });
     </script>
 </body>
 </html>
