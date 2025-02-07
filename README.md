@@ -7,28 +7,56 @@
     <style>
         body {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
             background-color: black;
             margin: 0;
+            color: white;
+            font-family: Arial, sans-serif;
         }
         canvas {
             background-color: #111;
         }
+        #score {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        #restartBtn {
+            display: none;
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
+    <div id="score">Score: 0</div>
     <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <button id="restartBtn" onclick="restartGame()">Restart</button>
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
+        const scoreDisplay = document.getElementById("score");
+        const restartBtn = document.getElementById("restartBtn");
 
         const gridSize = 20;
-        let snake = [{ x: 200, y: 200 }];
-        let direction = { x: 0, y: 0 };
-        let food = { x: 100, y: 100 };
-        let gameOver = false;
+        let snake, direction, food, gameOver, score;
+
+        function init() {
+            snake = [{ x: 200, y: 200 }];
+            direction = { x: 0, y: 0 };
+            food = { x: 100, y: 100 };
+            gameOver = false;
+            score = 0;
+            scoreDisplay.innerText = "Score: 0";
+            restartBtn.style.display = "none";
+        }
 
         function drawRect(x, y, color) {
             ctx.fillStyle = color;
@@ -49,12 +77,14 @@
 
         function update() {
             if (gameOver) return;
-            if (direction.x === 0 && direction.y === 0) return; // Prevent moving before key press
+            if (direction.x === 0 && direction.y === 0) return;
             let head = { x: snake[0].x + direction.x * gridSize, y: snake[0].y + direction.y * gridSize };
             snake.unshift(head);
             checkCollision();
             if (gameOver) return;
             if (head.x === food.x && head.y === food.y) {
+                score += 10;
+                scoreDisplay.innerText = "Score: " + score;
                 food = {
                     x: Math.floor(Math.random() * (canvas.width / gridSize)) * gridSize,
                     y: Math.floor(Math.random() * (canvas.height / gridSize)) * gridSize
@@ -70,6 +100,7 @@
                 ctx.fillStyle = "red";
                 ctx.font = "30px Arial";
                 ctx.fillText("GAME OVER", canvas.width / 4, canvas.height / 2);
+                restartBtn.style.display = "block";
                 return;
             }
             snake.forEach((segment, index) => {
@@ -83,6 +114,11 @@
             draw();
         }
 
+        function restartGame() {
+            init();
+        }
+
+        init();
         setInterval(gameLoop, 100);
 
         document.addEventListener("keydown", (event) => {
