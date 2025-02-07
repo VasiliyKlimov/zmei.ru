@@ -120,7 +120,7 @@
             if (gameOver) {
                 ctx.fillStyle = "red";
                 ctx.font = "30px Arial";
-                ctx.fillText("СОСИ ЖОПУ", canvas.width / 4, canvas.height / 2);
+                ctx.fillText("SOSI JOPU LOX PIDR", canvas.width / 4, canvas.height / 2);
                 restartBtn.style.display = "block";
                 return;
             }
