@@ -11,7 +11,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: black;
+            background: url('https://upload.wikimedia.org/wikipedia/commons/7/77/Greta_Thunberg_urges_MEPs_to_show_climate_leadership_%28cropped%29.jpg') no-repeat center center fixed; background-size: cover;
             margin: 0;
             color: white;
             font-family: Arial, sans-serif;
@@ -128,7 +128,7 @@
                 let emoji = index === 0 ? "🤬" : "☠️";
                 drawRect(segment.x, segment.y, emoji);
             });
-            drawRect(food.x, food.y, "😐");
+            drawRect(food.x, food.y, "😨");
         }
 
         function gameLoop() {
