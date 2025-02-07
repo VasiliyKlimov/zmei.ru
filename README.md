@@ -40,7 +40,7 @@
 </head>
 <body>
     <div id="score">Score: 0</div>
-    <canvas id="gameCanvas" width="650" height="550"></canvas>
+    <canvas id="gameCanvas" width="600" height="600"></canvas>
     <button id="restartBtn" onclick="restartGame()">Restart</button>
     <div id="highScores">
         <h3>High Scores</h3>
@@ -54,7 +54,7 @@
         const scoreList = document.getElementById("scoreList");
 
         const gridSize = 20;
-        let snake, direction, food, gameOver, score, speed, gameInterval;
+        let snake, direction, food, gameOver, score, speed, gameInterval, fastMode;
         let highScores = JSON.parse(localStorage.getItem("highScores")) || [];
 
         function init() {
@@ -64,6 +64,7 @@
             gameOver = false;
             score = 0;
             speed = 200;
+            fastMode = false;
             scoreDisplay.innerText = "Score: 0";
             restartBtn.style.display = "none";
             clearInterval(gameInterval);
@@ -107,7 +108,7 @@
                 if (score % 50 === 0) {
                     speed = Math.max(50, speed - 20);
                     clearInterval(gameInterval);
-                    gameInterval = setInterval(gameLoop, speed);
+                    gameInterval = setInterval(gameLoop, fastMode ? speed / 2 : speed);
                 }
             } else {
                 snake.pop();
@@ -119,7 +120,7 @@
             if (gameOver) {
                 ctx.fillStyle = "red";
                 ctx.font = "30px Arial";
-                ctx.fillText("GAME OVER", canvas.width / 4, canvas.height / 2);
+                ctx.fillText("СОСИ ЖОПУ", canvas.width / 4, canvas.height / 2);
                 restartBtn.style.display = "block";
                 return;
             }
@@ -158,11 +159,23 @@
         init();
         updateHighScores();
         document.addEventListener("keydown", (event) => {
+            if (event.key === "Shift") {
+                fastMode = true;
+                clearInterval(gameInterval);
+                gameInterval = setInterval(gameLoop, speed / 2);
+            }
             switch (event.key) {
                 case "ArrowUp": if (direction.y === 0) direction = { x: 0, y: -1 }; break;
                 case "ArrowDown": if (direction.y === 0) direction = { x: 0, y: 1 }; break;
                 case "ArrowLeft": if (direction.x === 0) direction = { x: -1, y: 0 }; break;
                 case "ArrowRight": if (direction.x === 0) direction = { x: 1, y: 0 }; break;
+            }
+        });
+        document.addEventListener("keyup", (event) => {
+            if (event.key === "Shift") {
+                fastMode = false;
+                clearInterval(gameInterval);
+                gameInterval = setInterval(gameLoop, speed);
             }
         });
     </script>
