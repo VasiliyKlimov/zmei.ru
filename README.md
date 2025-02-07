@@ -40,7 +40,7 @@
 </head>
 <body>
     <div id="score">Score: 0</div>
-    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <canvas id="gameCanvas" width="900" height="900"></canvas>
     <button id="restartBtn" onclick="restartGame()">Restart</button>
     <div id="highScores">
         <h3>High Scores</h3>
