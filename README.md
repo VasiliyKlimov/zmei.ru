@@ -18,6 +18,7 @@
         }
         canvas {
             background: none;
+            border: 5px solid white;
         }
         #score {
             font-size: 20px;
