@@ -54,7 +54,7 @@
         const scoreList = document.getElementById("scoreList");
 
         const gridSize = 20;
-        let snake, direction, food, gameOver, score;
+        let snake, direction, food, gameOver, score, speed, gameInterval;
         let highScores = JSON.parse(localStorage.getItem("highScores")) || [];
 
         function init() {
@@ -63,8 +63,11 @@
             food = { x: 100, y: 100 };
             gameOver = false;
             score = 0;
+            speed = 200;
             scoreDisplay.innerText = "Score: 0";
             restartBtn.style.display = "none";
+            clearInterval(gameInterval);
+            gameInterval = setInterval(gameLoop, speed);
         }
 
         function drawRect(x, y, color) {
@@ -101,6 +104,11 @@
                     x: Math.floor(Math.random() * (canvas.width / gridSize)) * gridSize,
                     y: Math.floor(Math.random() * (canvas.height / gridSize)) * gridSize
                 };
+                if (score % 50 === 0) {
+                    speed = Math.max(50, speed - 20);
+                    clearInterval(gameInterval);
+                    gameInterval = setInterval(gameLoop, speed);
+                }
             } else {
                 snake.pop();
             }
@@ -149,8 +157,6 @@
 
         init();
         updateHighScores();
-        setInterval(gameLoop, 100);
-
         document.addEventListener("keydown", (event) => {
             switch (event.key) {
                 case "ArrowUp": if (direction.y === 0) direction = { x: 0, y: -1 }; break;
