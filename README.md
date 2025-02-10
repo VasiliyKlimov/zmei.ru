@@ -1,185 +1,85 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake Game</title>
+    <title>3D Змейка</title>
     <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: url('https://a.d-cd.net/ae28054s-960.jpg') no-repeat center center fixed; background-size: cover;
-            margin: 0;
-            color: white;
-            font-family: Arial, sans-serif;
-        }
-        canvas {
-            background: none;
-            border: 5px solid white;
-        }
-        #score {
-            font-size: 20px;
-            margin-bottom: 10px;
-        }
-        #restartBtn {
-            display: none;
-            margin-top: 10px;
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: red;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        #highScores {
-            margin-top: 10px;
-        }
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
     </style>
 </head>
 <body>
-    <div id="score">Score: 0</div>
-    <canvas id="gameCanvas" width="600" height="600"></canvas>
-    <button id="restartBtn" onclick="restartGame()">Restart</button>
-    <div id="highScores">
-        <h3>High Scores</h3>
-        <ul id="scoreList"></ul>
-    </div>
+    <script src="https://cdn.jsdelivr.net/npm/three@latest/build/three.min.js"></script>
     <script>
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-        const scoreDisplay = document.getElementById("score");
-        const restartBtn = document.getElementById("restartBtn");
-        const scoreList = document.getElementById("scoreList");
+        // 1. Настройка сцены
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
-        const gridSize = 20;
-        let snake, direction, food, gameOver, score, speed, gameInterval, fastMode;
-        let highScores = JSON.parse(localStorage.getItem("highScores")) || [];
+        // Освещение
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight.position.set(1, 1, 1).normalize();
+        scene.add(directionalLight);
 
-        function init() {
-            snake = [{ x: 200, y: 200 }];
-            direction = { x: 0, y: 0 };
-            food = { x: 100, y: 100 };
-            gameOver = false;
-            score = 0;
-            speed = 200;
-            fastMode = false;
-            scoreDisplay.innerText = "Score: 0";
-            restartBtn.style.display = "none";
-            clearInterval(gameInterval);
-            gameInterval = setInterval(gameLoop, speed);
+        // 2. Создание змейки
+        const snakeGeometry = new THREE.BoxGeometry(1, 1, 1);
+        const snakeMaterial = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
+        const snake = [];
+        for (let i = 0; i < 5; i++) {
+            const segment = new THREE.Mesh(snakeGeometry, snakeMaterial);
+            segment.position.z = -i;
+            snake.push(segment);
+            scene.add(segment);
         }
 
-        function drawRect(x, y, emoji) {
-            ctx.font = "20px Arial";
-            ctx.fillText(emoji, x, y + 15);
-        }
+        // 3. Создание еды
+        const foodGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+        const foodMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+        const food = new THREE.Mesh(foodGeometry, foodMaterial);
+        food.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, 0);
+        scene.add(food);
 
-        function checkCollision() {
-            let head = snake[0];
-            if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height) {
-                gameOver = true;
+        // 4. Управление
+        let direction = new THREE.Vector3(0, 0, -1);
+        document.addEventListener('keydown', (event) => {
+            switch (event.code) {
+                case 'ArrowUp': direction.set(0, 1, 0); break;
+                case 'ArrowDown': direction.set(0, -1, 0); break;
+                case 'ArrowLeft': direction.set(-1, 0, 0); break;
+                case 'ArrowRight': direction.set(1, 0, 0); break;
             }
-            for (let i = 1; i < snake.length; i++) {
-                if (head.x === snake[i].x && head.y === snake[i].y) {
-                    gameOver = true;
-                }
-            }
-        }
+        });
 
+        // 5. Логика игры
         function update() {
-            if (gameOver) return;
-            if (direction.x === 0 && direction.y === 0) return;
-            let head = { x: snake[0].x + direction.x * gridSize, y: snake[0].y + direction.y * gridSize };
-            snake.unshift(head);
-            checkCollision();
-            if (gameOver) {
-                saveScore();
-                return;
-            }
-            if (head.x === food.x && head.y === food.y) {
-                score += 10;
-                scoreDisplay.innerText = "Score: " + score;
-                food = {
-                    x: Math.floor(Math.random() * (canvas.width / gridSize)) * gridSize,
-                    y: Math.floor(Math.random() * (canvas.height / gridSize)) * gridSize
-                };
-                if (score % 50 === 0) {
-                    speed = Math.max(50, speed - 20);
-                    clearInterval(gameInterval);
-                    gameInterval = setInterval(gameLoop, fastMode ? speed / 2 : speed);
-                }
+            const head = snake[0];
+            const newHead = new THREE.Mesh(snakeGeometry, snakeMaterial);
+            newHead.position.copy(head.position).add(direction);
+            snake.unshift(newHead);
+            scene.add(newHead);
+
+            if (head.position.distanceTo(food.position) < 0.75) {
+                food.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, 0);
             } else {
-                snake.pop();
+                const tail = snake.pop();
+                scene.remove(tail);
             }
         }
 
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            if (gameOver) {
-                ctx.fillStyle = "red";
-                ctx.font = "300px Arial";
-                ctx.fillText("💩", canvas.width / 4, canvas.height / 2);
-                restartBtn.style.display = "block";
-                return;
-            }
-            snake.forEach((segment, index) => {
-                let emoji = index === 0 ? "🤬" : "☠️";
-                drawRect(segment.x, segment.y, emoji);
-            });
-            drawRect(food.x, food.y, "😨");
-        }
+        // 6. Анимация
+        camera.position.set(0, 5, 15);
+        camera.lookAt(0, 0, 0);
 
-        function gameLoop() {
+        function animate() {
+            requestAnimationFrame(animate);
             update();
-            draw();
+            renderer.render(scene, camera);
         }
 
-        function saveScore() {
-            highScores.push(score);
-            highScores.sort((a, b) => b - a);
-            highScores = highScores.slice(0, 5);
-            localStorage.setItem("highScores", JSON.stringify(highScores));
-            updateHighScores();
-        }
-
-        function updateHighScores() {
-            scoreList.innerHTML = "";
-            highScores.forEach((s, index) => {
-                let li = document.createElement("li");
-                li.textContent = `${index + 1}. ${s}`;
-                scoreList.appendChild(li);
-            });
-        }
-
-        function restartGame() {
-            init();
-        }
-
-        init();
-        updateHighScores();
-        document.addEventListener("keydown", (event) => {
-            if (event.key === "Shift") {
-                fastMode = true;
-                clearInterval(gameInterval);
-                gameInterval = setInterval(gameLoop, speed / 2);
-            }
-            switch (event.key) {
-                case "ArrowUp": if (direction.y === 0) direction = { x: 0, y: -1 }; break;
-                case "ArrowDown": if (direction.y === 0) direction = { x: 0, y: 1 }; break;
-                case "ArrowLeft": if (direction.x === 0) direction = { x: -1, y: 0 }; break;
-                case "ArrowRight": if (direction.x === 0) direction = { x: 1, y: 0 }; break;
-            }
-        });
-        document.addEventListener("keyup", (event) => {
-            if (event.key === "Shift") {
-                fastMode = false;
-                clearInterval(gameInterval);
-                gameInterval = setInterval(gameLoop, speed);
-            }
-        });
+        animate();
     </script>
 </body>
 </html>
