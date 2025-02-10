@@ -11,26 +11,35 @@
         }
         canvas {
             display: block;
+            border: 5px solid black; /* Граница игрового поля */
+        }
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+            color: black;
         }
     </style>
 </head>
 <body>
+    <div id="score">Счет: 0</div>
     <canvas id="gameCanvas"></canvas>
     <script>
         let canvas = document.getElementById("gameCanvas");
         let ctx = canvas.getContext("2d");
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        canvas.width = 800;
+        canvas.height = 600;
         
-        let snake = [{x: canvas.width / 2, y: canvas.height / 2}];
-        let food = {x: Math.random() * canvas.width, y: Math.random() * canvas.height};
+        let snake = [{x: 400, y: 300}];
+        let food = {x: Math.random() * (canvas.width - 20), y: Math.random() * (canvas.height - 20)};
         let snakeSize = 20;
-        let speed = 2;
+        let speed = 20;
         let dx = speed;
         let dy = 0;
-        let foodSpeed = 2;
-        let foodDirX = (Math.random() - 0.5) * foodSpeed;
-        let foodDirY = (Math.random() - 0.5) * foodSpeed;
+        let score = 0;
         
         document.addEventListener("keydown", function(event) {
             switch(event.key) {
@@ -53,21 +62,22 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
             let head = {x: snake[0].x + dx, y: snake[0].y + dy};
+            
+            if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height) {
+                alert("Игра окончена! Ваш результат: " + score);
+                document.location.reload();
+            }
+            
             snake.unshift(head);
             
             if (Math.hypot(head.x - food.x, head.y - food.y) < snakeSize) {
-                food.x = Math.random() * canvas.width;
-                food.y = Math.random() * canvas.height;
-                foodDirX = (Math.random() - 0.5) * foodSpeed;
-                foodDirY = (Math.random() - 0.5) * foodSpeed;
+                score++;
+                document.getElementById("score").innerText = "Счет: " + score;
+                food.x = Math.random() * (canvas.width - 20);
+                food.y = Math.random() * (canvas.height - 20);
             } else {
                 snake.pop();
             }
-            
-            food.x += foodDirX;
-            food.y += foodDirY;
-            if (food.x < 0 || food.x > canvas.width) foodDirX *= -1;
-            if (food.y < 0 || food.y > canvas.height) foodDirY *= -1;
             
             ctx.fillStyle = "green";
             snake.forEach(segment => {
