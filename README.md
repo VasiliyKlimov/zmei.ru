@@ -39,8 +39,12 @@
         const foodGeometry = new THREE.SphereGeometry(0.5, 32, 32);
         const foodMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 });
         const food = new THREE.Mesh(foodGeometry, foodMaterial);
-        food.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, 0);
+        newFoodPosition();
         scene.add(food);
+
+        function newFoodPosition() {
+            food.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, 0);
+        }
 
         // 4. Управление
         let direction = new THREE.Vector3(0, 0, -1);
@@ -54,6 +58,15 @@
         });
 
         // 5. Логика игры
+        let score = 0;
+        const scoreElement = document.createElement('div');
+        scoreElement.style.position = 'absolute';
+        scoreElement.style.top = '10px';
+        scoreElement.style.left = '10px';
+        scoreElement.style.color = 'white';
+        scoreElement.textContent = 'Score: ' + score;
+        document.body.appendChild(scoreElement);
+
         function update() {
             const head = snake[0];
             const newHead = new THREE.Mesh(snakeGeometry, snakeMaterial);
@@ -62,7 +75,9 @@
             scene.add(newHead);
 
             if (head.position.distanceTo(food.position) < 0.75) {
-                food.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, 0);
+                score++;
+                scoreElement.textContent = 'Score: ' + score;
+                newFoodPosition();
             } else {
                 const tail = snake.pop();
                 scene.remove(tail);
