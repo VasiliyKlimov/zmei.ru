@@ -26,24 +26,33 @@
         let food = {x: Math.random() * canvas.width, y: Math.random() * canvas.height};
         let snakeSize = 20;
         let speed = 2;
-        let mouseX = canvas.width / 2;
-        let mouseY = canvas.height / 2;
+        let dx = speed;
+        let dy = 0;
         let foodSpeed = 2;
         let foodDirX = (Math.random() - 0.5) * foodSpeed;
         let foodDirY = (Math.random() - 0.5) * foodSpeed;
         
-        document.addEventListener("mousemove", function(event) {
-            mouseX = event.clientX;
-            mouseY = event.clientY;
+        document.addEventListener("keydown", function(event) {
+            switch(event.key) {
+                case "ArrowUp":
+                    if (dy === 0) { dy = -speed; dx = 0; }
+                    break;
+                case "ArrowDown":
+                    if (dy === 0) { dy = speed; dx = 0; }
+                    break;
+                case "ArrowLeft":
+                    if (dx === 0) { dx = -speed; dy = 0; }
+                    break;
+                case "ArrowRight":
+                    if (dx === 0) { dx = speed; dy = 0; }
+                    break;
+            }
         });
         
         function gameLoop() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            let head = {x: snake[0].x, y: snake[0].y};
-            let angle = Math.atan2(mouseY - head.y, mouseX - head.x);
-            head.x += Math.cos(angle) * speed;
-            head.y += Math.sin(angle) * speed;
+            let head = {x: snake[0].x + dx, y: snake[0].y + dy};
             snake.unshift(head);
             
             if (Math.hypot(head.x - food.x, head.y - food.y) < snakeSize) {
