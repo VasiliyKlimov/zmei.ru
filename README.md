@@ -1,16 +1,23 @@
-
-<html>
+<!DOCTYPE html>
+<html lang="ru">
 <head>
-    <title>Мухобойка 8-bit</title>
+    <meta charset="UTF-8">
+    <title>Мухобойка 8-bit 🪰🔨</title>
     <style>
         body {
-            background: url('C:*/Users/Гостевой/Desktop/Василий/Документы/w56FyQjre1E.jpg') repeat;
+            background: url('https://i.imgur.com/3ZQZQ9m.png') repeat;
             image-rendering: pixelated;
             text-align: center;
             font-family: 'Press Start 2P', cursive;
             color: white;
             overflow: hidden;
             margin: 0;
+        }
+        h1 {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
         }
         canvas {
             display: block;
@@ -53,11 +60,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
-    <h1>Мухобойка 8-bit</h1>
+    <h1>Мухобойка 8-bit 🪰🔨</h1>
     <p>Лови мух мухобойкой! Кликни, чтобы ударить.</p>
     <canvas id="gameCanvas" width="600" height="400"></canvas>
     <div id="score-container">Очки: <span id="score">0</span></div>
-    <div id="timer-container">Время: <span id="timer">30</span> сек</div>
+    <div id="timer-container">⏳ Время: <span id="timer">30</span> сек</div>
     <div id="message">
         Игра окончена! Счет: <span id="final-score">0</span>
         <button id="restart-button">Рестарт</button>
@@ -70,6 +77,7 @@
         let timeLeft = 30;
         let gameOver = false;
 
+        // Разные виды мух 🪰
         const flyImages = [
             'https://i.imgur.com/F2K4R6J.png',
             'https://i.imgur.com/a6yXNvJ.png',
@@ -86,11 +94,23 @@
         
         let fly = { x: Math.random() * 560, y: Math.random() * 360, speed: 2 };
         let mouseX = 0, mouseY = 0;
+        let swatterAnimation = false;
 
         function drawFly() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(flyImage, fly.x, fly.y, 40, 40);
-            ctx.drawImage(swatterImage, mouseX - 20, mouseY - 20, 40, 40);
+
+            // Улучшенная анимация мухобойки 🔨
+            if (swatterAnimation) {
+                ctx.save();
+                ctx.translate(mouseX, mouseY);
+                ctx.rotate(-0.3); // Малый наклон при ударе
+                ctx.drawImage(swatterImage, -20, -20, 40, 40);
+                ctx.restore();
+                setTimeout(() => { swatterAnimation = false; drawFly(); }, 100);
+            } else {
+                ctx.drawImage(swatterImage, mouseX - 20, mouseY - 20, 40, 40);
+            }
         }
 
         function moveFly() {
@@ -117,6 +137,9 @@
             } else {
                 missSound.play();
             }
+
+            swatterAnimation = true;
+            drawFly();
         }
 
         function countdown() {
