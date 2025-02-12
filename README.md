@@ -4,7 +4,7 @@
     <title>Мухобойка 8-bit</title>
     <style>
         body {
-            background: url('C:\Users\Гостевой\Desktop\Василий\Документы\w56FyQjre1E.jpg') repeat;
+            background: url('C:*/Users/Гостевой/Desktop/Василий/Документы/w56FyQjre1E.jpg') repeat;
             image-rendering: pixelated;
             text-align: center;
             font-family: 'Press Start 2P', cursive;
