@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Мухобойка 8-bit 🪰🔨</title>
-    <link rel="icon" href="https://i.imgur.com/YhTG8xZ.png" type="image/png"> <!-- Иконка мухобойки -->
     <style>
         body {
             background: url('https://i.imgur.com/3ZQZQ9m.png') repeat;
@@ -13,7 +12,6 @@
             color: white;
             overflow: hidden;
             margin: 0;
-            cursor: url('https://i.imgur.com/YhTG8xZ.png') 16 16, auto; /* Курсор-мухобойка */
         }
         h1 {
             display: flex;
@@ -27,7 +25,7 @@
             border: 3px solid white;
             background: #73c48f;
             image-rendering: pixelated;
-            cursor: none; /* Отключение системного курсора */
+            cursor: crosshair;
         }
         #score-container, #timer-container {
             margin-top: 10px;
@@ -78,6 +76,7 @@
         let score = 0;
         let timeLeft = 30;
         let gameOver = false;
+        let paused = false;
 
         // Разные виды мух 🪰
         const flyImages = [
@@ -93,7 +92,9 @@
 
         let hitSound = new Audio('https://www.myinstants.com/media/sounds/slap.mp3');
         let missSound = new Audio('https://www.myinstants.com/media/sounds/miss.mp3');
-        
+        let bgMusic = new Audio('https://www.myinstants.com/media/sounds/8-bit-music.mp3'); // Фоновая музыка
+        bgMusic.loop = true;
+
         let fly = { x: Math.random() * 560, y: Math.random() * 360, speed: 2 };
         let mouseX = 0, mouseY = 0;
         let swatterAnimation = false;
@@ -116,7 +117,7 @@
         }
 
         function moveFly() {
-            if (gameOver) return;
+            if (gameOver || paused) return;
             fly.x += (Math.random() - 0.5) * fly.speed * 2;
             fly.y += (Math.random() - 0.5) * fly.speed * 2;
             fly.x = Math.max(0, Math.min(fly.x, canvas.width - 40));
@@ -125,7 +126,7 @@
         }
 
         function hitFly(event) {
-            if (gameOver) return;
+            if (gameOver || paused) return;
             const rect = canvas.getBoundingClientRect();
             mouseX = event.clientX - rect.left;
             mouseY = event.clientY - rect.top;
@@ -145,15 +146,16 @@
         }
 
         function countdown() {
-            if (timeLeft > 0) {
+            if (timeLeft > 0 && !paused) {
                 timeLeft--;
                 document.getElementById("timer").textContent = timeLeft;
-            } else {
+            } else if (timeLeft <= 0) {
                 gameOver = true;
                 clearInterval(flyInterval);
                 clearInterval(timerInterval);
                 document.getElementById("message").style.display = "block";
                 document.getElementById("final-score").textContent = score;
+                bgMusic.pause();
             }
         }
 
@@ -164,9 +166,17 @@
         });
 
         canvas.addEventListener("click", hitFly);
-        
-        let flyInterval = setInterval(moveFly, 50);
-        let timerInterval = setInterval(countdown, 1000);
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "p" || event.key === "P") {
+                paused = !paused;
+                if (paused) {
+                    bgMusic.pause();
+                } else {
+                    bgMusic.play();
+                }
+            }
+        });
 
         document.getElementById("restart-button").addEventListener("click", () => {
             score = 0;
@@ -178,7 +188,12 @@
             document.getElementById("message").style.display = "none";
             flyInterval = setInterval(moveFly, 50);
             timerInterval = setInterval(countdown, 1000);
+            bgMusic.play();
         });
+
+        let flyInterval = setInterval(moveFly, 50);
+        let timerInterval = setInterval(countdown, 1000);
+        bgMusic.play();
     </script>
 </body>
 </html>
