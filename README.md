@@ -1,131 +1,71 @@
+<!DOCTYPE html>
 <html>
 <head>
-    <title>Змейка ловит мышей</title>
+    <title>Мухобойка 8-bit</title>
     <style>
         body {
-            margin: 0;
-            overflow: hidden;
-            background: url('https://i.pinimg.com/560x/e0/9f/9e/e09f9e2954c25921c998589945415592.jpg') no-repeat center center fixed;
-            background-size: cover;
-            font-family: Arial, sans-serif;
+            background: url('https://i.imgur.com/Wc4WyKo.png') repeat;
+            image-rendering: pixelated;
+            text-align: center;
+            font-family: 'Press Start 2P', cursive;
             color: white;
         }
         canvas {
             display: block;
-            border: 5px solid black;
-            margin: 10px auto;
-            background-color: rgba(0, 0, 0, 0.5);
+            margin: 20px auto;
+            border: 3px solid white;
+            background: #73c48f;
+            image-rendering: pixelated;
         }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
+    <h1>Мухобойка 8-bit</h1>
+    <p>Лови мух мухобойкой! Кликни, чтобы ударить.</p>
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+    <p>Очки: <span id="score">0</span></p>
     <script>
-        let canvas = document.getElementById("gameCanvas");
-        let ctx = canvas.getContext("2d");
-        canvas.width = 600;
-        canvas.height = 600;
-        
-        let snake = [{ x: 300, y: 300 }];
-        let snakeSize = 20;
-        let dx = snakeSize, dy = 0;
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
         let score = 0;
-        let frameRate = 100;
-        let gameStarted = false;
-        let food = generateFoodPosition();
-
-        let eatSound = new Audio('eat.mp3');
-        let crashSound = new Audio('crash.mp3');
-
-        function generateFoodPosition() {
-            let newFood;
-            do {
-                newFood = {
-                    x: Math.floor(Math.random() * (canvas.width / snakeSize)) * snakeSize,
-                    y: Math.floor(Math.random() * (canvas.height / snakeSize)) * snakeSize
-                };
-            } while (snake.some(segment => segment.x === newFood.x && segment.y === newFood.y));
-            return newFood;
+        let fly = { x: Math.random() * 560, y: Math.random() * 360, speed: 2 };
+        let flyImage = new Image();
+        flyImage.src = 'https://i.imgur.com/F2K4R6J.png';
+        let swatterImage = new Image();
+        swatterImage.src = 'https://i.imgur.com/YhTG8xZ.png';
+        let hitSound = new Audio('https://www.fesliyanstudios.com/play-mp3/387');
+        
+        function drawFly() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(flyImage, fly.x, fly.y, 40, 40);
         }
-
-        function changeDirection(event) {
-            const { keyCode } = event;
-            if (keyCode === 37 && dx === 0) { dx = -snakeSize; dy = 0; }
-            if (keyCode === 39 && dx === 0) { dx = snakeSize; dy = 0; }
-            if (keyCode === 38 && dy === 0) { dx = 0; dy = -snakeSize; }
-            if (keyCode === 40 && dy === 0) { dx = 0; dy = snakeSize; }
+        
+        function moveFly() {
+            fly.x += (Math.random() - 0.5) * fly.speed * 10;
+            fly.y += (Math.random() - 0.5) * fly.speed * 10;
+            fly.x = Math.max(0, Math.min(fly.x, canvas.width - 40));
+            fly.y = Math.max(0, Math.min(fly.y, canvas.height - 40));
+            drawFly();
         }
-
-        function updateSpeed() {
-            frameRate = Math.max(50, 100 - score * 2);
-        }
-
-        function gameLoop() {
-            if (!gameStarted) return;
-            setTimeout(() => {
-                let head = { x: snake[0].x + dx, y: snake[0].y + dy };
-                if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height ||
-                    snake.some(segment => segment.x === head.x && segment.y === head.y)) {
-                    crashSound.play();
-                    alert("Игра окончена! Ваш результат: " + score);
-                    location.reload();
-                    return;
-                }
-                
-                if (head.x === food.x && head.y === food.y) {
-                    score++;
-                    updateSpeed();
-                    eatSound.play();
-                    food = generateFoodPosition();
-                } else {
-                    snake.pop();
-                }
-                
-                snake.unshift(head);
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = "green";
-                snake.forEach(segment => ctx.fillRect(segment.x, segment.y, snakeSize, snakeSize));
-                
-                ctx.fillStyle = "red";
-                ctx.fillRect(food.x, food.y, snakeSize, snakeSize);
-                
-                requestAnimationFrame(gameLoop);
-            }, frameRate);
-        }
-
-        document.addEventListener('keydown', event => {
-            if (!gameStarted) {
-                gameStarted = true;
-                gameLoop();
+        
+        function hitFly(event) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+            
+            ctx.drawImage(swatterImage, mouseX - 20, mouseY - 20, 50, 50);
+            
+            if (mouseX >= fly.x && mouseX <= fly.x + 40 && mouseY >= fly.y && mouseY <= fly.y + 40) {
+                score++;
+                document.getElementById("score").textContent = score;
+                fly = { x: Math.random() * 560, y: Math.random() * 360, speed: fly.speed + 0.1 };
+                hitSound.play();
             }
-            changeDirection(event);
-        });
-
-        document.addEventListener('touchstart', handleTouchStart, false);
-        document.addEventListener('touchmove', handleTouchMove, false);
-        let xDown = null, yDown = null;
-
-        function handleTouchStart(evt) {
-            xDown = evt.touches[0].clientX;
-            yDown = evt.touches[0].clientY;
         }
-
-        function handleTouchMove(evt) {
-            if (!xDown || !yDown) return;
-            let xUp = evt.touches[0].clientX;
-            let yUp = evt.touches[0].clientY;
-            let xDiff = xDown - xUp;
-            let yDiff = yDown - yUp;
-            if (Math.abs(xDiff) > Math.abs(yDiff)) {
-                if (xDiff > 0 && dx === 0) { dx = -snakeSize; dy = 0; }
-                else if (xDiff < 0 && dx === 0) { dx = snakeSize; dy = 0; }
-            } else {
-                if (yDiff > 0 && dy === 0) { dx = 0; dy = -snakeSize; }
-                else if (yDiff < 0 && dy === 0) { dx = 0; dy = snakeSize; }
-            }
-            xDown = null;
-            yDown = null;
-        }
+        
+        canvas.addEventListener("click", hitFly);
+        setInterval(moveFly, 500);
+        drawFly();
     </script>
 </body>
 </html>
