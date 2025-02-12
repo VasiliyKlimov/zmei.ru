@@ -7,46 +7,39 @@
         body {
             margin: 0;
             overflow: hidden;
-            /* Используем несколько изображений змей для фона */
-            background: url('https://i.pinimg.com/560x/e0/9f/9e/e09f9e2954c25921c998589945415592.jpg') no-repeat center center;
+            background: url('https://i.pinimg.com/560x/e0/9f/9e/e09f9e2954c25921c998589945415592.jpg') no-repeat center center fixed;
             background-size: cover;
-            font-family: sans-serif; /* Добавим шрифт для читаемости текста */
-            color: white; /* Белый текст для лучшей видимости на фоне */
+            font-family: Arial, sans-serif;
+            color: white;
         }
         canvas {
             display: block;
             border: 5px solid black;
-            background-color: rgba(0, 0, 0, 0.7); /* Полупрозрачный черный фон для canvas, чтобы змейка была лучше видна на фоне */
+            margin: 10px auto;
+            background-color: rgba(0, 0, 0, 0.5); /* Полупрозрачный фон для лучшей видимости */
         }
         #scoreboard {
             position: absolute;
             top: 10px;
             left: 10px;
-            padding: 15px;
-            background-color: rgba(0, 0, 0, 0.6); /* Полупрозрачный фон для scoreboard */
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
             border-radius: 5px;
-        }
-        #scoreboard div {
-            margin-bottom: 8px;
+            width: 200px;
+            text-align: center;
         }
         #highScores {
-            margin-top: 15px;
+            margin-top: 10px;
         }
         #highScoresList {
-            padding-left: 20px;
-            margin-top: 5px;
+            padding: 0;
+            margin: 0;
         }
-        #restartButton {
-            padding: 8px 15px;
-            background-color: #4CAF50; /* Зеленый цвет кнопки */
-            color: white;
-            border: none;
-            border-radius: 5px;
+        button {
+            margin-top: 10px;
+            padding: 5px 10px;
+            font-size: 14px;
             cursor: pointer;
-            font-size: 16px;
-        }
-        #restartButton:hover {
-            background-color: #45a049; /* Более темный зеленый при наведении */
         }
     </style>
 </head>
@@ -57,211 +50,185 @@
         <button id="restartButton" onclick="restartGame()">Перезапуск</button>
         <div id="highScores">
             <h3>Рекорды:</h3>
-            <ol id="highScoresList">
-            </ol>
+            <ol id="highScoresList"></ol>
         </div>
     </div>
     <canvas id="gameCanvas"></canvas>
     <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const scoreDisplay = document.getElementById('score');
-        const bestScoreDisplay = document.getElementById('bestScore');
-        const highScoresList = document.getElementById('highScoresList');
+        let canvas = document.getElementById("gameCanvas");
+        let ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth > 600 ? 600 : window.innerWidth; // Ограничение размера холста
+        canvas.height = canvas.width; // Квадратное поле
 
-        const gridSize = 20; // Размер клетки сетки
-        let snakeSize = gridSize; // Размер змейки равен размеру клетки
-        let canvasSize = 400; // Размер канваса
-        canvas.width = canvasSize;
-        canvas.height = canvasSize;
-
-        let snake = [{ x: 160, y: 160 }]; // Начальная позиция змейки
-        let food = {};
-        let dx = gridSize; // Начальное направление по X (вправо)
-        let dy = 0;        // Начальное направление по Y (не двигается)
+        let snake = [{ x: canvas.width / 2, y: canvas.height / 2 }];
+        let food = { x: Math.random() * (canvas.width - snakeSize), y: Math.random() * (canvas.height - snakeSize) };
+        let snakeSize = 20;
+        let dx = snakeSize, dy = 0; // Начальное направление движения
         let score = 0;
-        let bestScore = localStorage.getItem('bestScore') || 0; // Получаем лучший результат из localStorage
-        bestScoreDisplay.textContent = bestScore;
-        let highScores = JSON.parse(localStorage.getItem('highScores') || '[]'); // Получаем рекорды из localStorage
-        updateHighScoresList();
-
-        let frameRate = 150; // Скорость игры (миллисекунды между кадрами)
+        let bestScore = 0;
+        let frameRate = 100; // Скорость обновления игры в миллисекундах
         let gameStarted = false;
-        let gameLoopInterval;
 
-        // Изображение мыши
-        const foodImage = new Image();
-        foodImage.src = 'https://i.imgur.com/yAoEa5M.png'; // Замените на URL изображения мыши
-
-        // Функция для генерации случайной позиции для еды
-        function generateFood() {
-            let newFoodPosition;
-            do {
-                newFoodPosition = {
-                    x: Math.floor(Math.random() * (canvas.width / gridSize)) * gridSize,
-                    y: Math.floor(Math.random() * (canvas.height / gridSize)) * gridSize
-                };
-            } while (snake.some(segment => segment.x === newFoodPosition.x && segment.y === newFoodPosition.y)); // Проверяем, не на змейке ли еда
-            food = newFoodPosition;
-        }
-
-        // Функция для проверки столкновения змейки с собой
+        // Функция для проверки столкновения с собой
         function selfCollision(head) {
-            for (let i = 1; i < snake.length; i++) {
-                if (head.x === snake[i].x && head.y === snake[i].y) {
-                    return true;
-                }
+            for (let segment of snake) {
+                if (head.x === segment.x && head.y === segment.y) return true;
             }
             return false;
         }
 
-        // Функция для отрисовки змейки
-        function drawSnake() {
-            snake.forEach((segment, index) => {
-                ctx.fillStyle = index === 0 ? 'lightgreen' : 'green'; // Голова змейки светлее
-                ctx.fillRect(segment.x, segment.y, snakeSize, snakeSize);
-                ctx.strokeStyle = 'darkgreen'; // Обводка для сегментов
-                ctx.strokeRect(segment.x, segment.y, snakeSize, snakeSize);
-            });
-        }
+        // Обработчик клавиш
+        document.addEventListener('keydown', changeDirection);
 
-        // Функция для отрисовки еды (мыши)
-        function drawFood() {
-            if (foodImage.complete) { // Убедимся, что изображение загружено
-                ctx.drawImage(foodImage, food.x, food.y, snakeSize, snakeSize);
-            } else {
-                foodImage.onload = () => { // Если нет, загрузим и нарисуем после загрузки
-                    ctx.drawImage(foodImage, food.x, food.y, snakeSize, snakeSize);
-                };
+        function changeDirection(event) {
+            const LEFT_KEY = 37;
+            const RIGHT_KEY = 39;
+            const UP_KEY = 38;
+            const DOWN_KEY = 40;
+
+            const keyPressed = event.keyCode;
+            const goingUp = dy === -snakeSize;
+            const goingDown = dy === snakeSize;
+            const goingRight = dx === snakeSize;
+            const goingLeft = dx === -snakeSize;
+
+            if (keyPressed === LEFT_KEY && !goingRight) {
+                dx = -snakeSize;
+                dy = 0;
+            } else if (keyPressed === RIGHT_KEY && !goingLeft) {
+                dx = snakeSize;
+                dy = 0;
+            } else if (keyPressed === UP_KEY && !goingDown) {
+                dx = 0;
+                dy = -snakeSize;
+            } else if (keyPressed === DOWN_KEY && !goingUp) {
+                dx = 0;
+                dy = snakeSize;
             }
         }
 
-
-        // Основной игровой цикл
-        function gameLoop() {
-            if (!gameStarted) return;
-
-            gameLoopInterval = setTimeout(() => {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                let head = { x: snake[0].x + dx, y: snake[0].y + dy };
-
-                // Проверка столкновений со стенами и с собой
-                if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height || selfCollision(head)) {
-                    gameOver();
-                    return; // Выход из gameLoop после завершения игры
-                }
-
-                snake.unshift(head); // Добавляем новую голову в начало змейки
-
-                // Проверка, съела ли змейка еду
-                if (head.x === food.x && head.y === food.y) {
-                    score++;
-                    scoreDisplay.textContent = score;
-                    generateFood(); // Генерируем новую еду
-                    if (score > bestScore) {
-                        bestScore = score;
-                        bestScoreDisplay.textContent = bestScore;
-                        localStorage.setItem('bestScore', bestScore); // Сохраняем лучший результат
-                    }
-                } else {
-                    snake.pop(); // Убираем хвост, если еда не была съедена
-                }
-
-                drawFood();
-                drawSnake();
-                requestAnimationFrame(gameLoop); // Запускаем следующий кадр анимации
-            }, frameRate);
-        }
-
-        function gameOver() {
-            gameStarted = false;
-            clearInterval(gameLoopInterval); // Очищаем setTimeout
-            alert(`Игра окончена! Ваш результат: ${score}`);
-
-            // Обновление рекордов
-            highScores.push({ score: score, date: new Date().toLocaleDateString() });
-            highScores.sort((a, b) => b.score - a.score); // Сортировка по убыванию
-            highScores = highScores.slice(0, 5); // Оставляем только топ 5
-            localStorage.setItem('highScores', JSON.stringify(highScores)); // Сохраняем рекорды
-            updateHighScoresList();
-
-            restartGame(); // Подготавливаем игру к перезапуску
-        }
-
-        function updateHighScoresList() {
-            highScoresList.innerHTML = ''; // Очищаем список
-            highScores.forEach(record => {
-                const li = document.createElement('li');
-                li.textContent = `${record.score} - ${record.date}`;
-                highScoresList.appendChild(li);
-            });
-        }
-
-
-        function restartGame() {
-            gameStarted = false;
-            clearInterval(gameLoopInterval); // Убедимся, что предыдущий цикл остановлен
-            snake = [{ x: 160, y: 160 }]; // Возвращаем змейку в начальное положение
-            dx = gridSize;
-            dy = 0; // Сбрасываем направление
-            score = 0;
-            scoreDisplay.textContent = score;
-            generateFood(); // Генерируем еду заново
-            document.addEventListener('keydown', startGame); // Возвращаем слушатель для начала игры
-            document.getElementById('restartButton').textContent = 'Перезапуск'; // Обновляем текст кнопки
-        }
+        // Запуск игры по нажатию клавиши
+        document.addEventListener('keydown', startGame);
 
         function startGame() {
             if (!gameStarted) {
                 gameStarted = true;
-                document.removeEventListener('keydown', startGame); // Убираем слушатель события старта
-                generateFood(); // Генерируем еду при старте игры
+                document.removeEventListener('keydown', startGame); // Убираем слушатель события
                 gameLoop();
-                document.getElementById('restartButton').textContent = 'Перезапустить'; // Меняем текст кнопки после старта
             }
         }
 
-        // Обработка нажатий клавиш для управления змейкой
-        document.addEventListener('keydown', startGame); // Запуск игры по нажатию любой клавиши (первый старт)
-        document.addEventListener('keydown', changeDirection);
+        function gameLoop() {
+            if (!gameStarted) return; // Проверяем, запущена ли игра
 
-        function changeDirection(event) {
-            if (!gameStarted) return; // Игнорируем ввод, если игра не запущена
+            setTimeout(() => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            const keyPressed = event.keyCode;
-            const LEFT = 37;
-            const UP = 38;
-            const RIGHT = 39;
-            const DOWN = 40;
+                // Движение головы змеи
+                let head = { x: snake[0].x + dx, y: snake[0].y + dy };
 
-            const goingUp = dy === -gridSize;
-            const goingDown = dy === gridSize;
-            const goingLeft = dx === -gridSize;
-            const goingRight = dx === gridSize;
+                // Проверка столкновений со стенами или собой
+                if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height || selfCollision(head)) {
+                    endGame();
+                    return;
+                }
 
-            if (keyPressed === LEFT && !goingRight) {
-                dx = -gridSize;
-                dy = 0;
-            }
-            if (keyPressed === UP && !goingDown) {
-                dx = 0;
-                dy = -gridSize;
-            }
-            if (keyPressed === RIGHT && !goingLeft) {
-                dx = gridSize;
-                dy = 0;
-            }
-            if (keyPressed === DOWN && !goingUp) {
-                dx = 0;
-                dy = gridSize;
-            }
+                // Проверка поедания еды
+                if (Math.hypot(head.x - food.x, head.y - food.y) < snakeSize) {
+                    score++;
+                    updateScore(); // Обновляем счет
+                    food = generateFoodPosition(); // Генерируем новую позицию еды
+                } else {
+                    snake.pop(); // Удаляем последний сегмент
+                }
+
+                // Добавляем новый сегмент в начало
+                snake.unshift(head);
+
+                // Отрисовка змеи
+                ctx.fillStyle = "green";
+                for (let segment of snake) {
+                    ctx.fillRect(segment.x, segment.y, snakeSize, snakeSize);
+                }
+
+                // Отрисовка еды
+                ctx.fillStyle = "red";
+                ctx.beginPath();
+                ctx.arc(food.x, food.y, snakeSize / 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                requestAnimationFrame(gameLoop);
+            }, frameRate);
         }
 
-        // Генерация еды при загрузке страницы (чтобы еда была видна сразу после загрузки)
-        generateFood();
-        drawFood(); // Отображаем еду до начала игры
-        drawSnake(); // Отображаем змейку в начальной позиции до начала игры
+        // Функция завершения игры
+        function endGame() {
+            if (score > bestScore) {
+                bestScore = score; // Обновляем лучший результат
+                updateBestScore();
+                saveHighScore(score); // Сохраняем рекорд
+            }
+            gameStarted = false;
+            alert("Игра окончена! Ваш результат: " + score);
+            restartGame();
+        }
+
+        // Генерация новой позиции еды
+        function generateFoodPosition() {
+            let newFood = {
+                x: Math.floor(Math.random() * ((canvas.width - snakeSize) / snakeSize)) * snakeSize,
+                y: Math.floor(Math.random() * ((canvas.height - snakeSize) / snakeSize)) * snakeSize
+            };
+            return newFood;
+        }
+
+        // Обновление текущего счета
+        function updateScore() {
+            document.getElementById("score").textContent = score;
+        }
+
+        // Обновление лучшего счета
+        function updateBestScore() {
+            document.getElementById("bestScore").textContent = bestScore;
+        }
+
+        // Перезапуск игры
+        function restartGame() {
+            snake = [{ x: canvas.width / 2, y: canvas.height / 2 }]; // Сбрасываем змею
+            dx = snakeSize;
+            dy = 0;
+            score = 0;
+            updateScore();
+            food = generateFoodPosition(); // Генерируем новую позицию еды
+            gameStarted = false; // Сбрасываем флаг начала игры
+            document.addEventListener('keydown', startGame); // Возобновляем слушатель события
+        }
+
+        // Сохранение рекордов
+        function saveHighScore(score) {
+            let highScores = JSON.parse(localStorage.getItem("highScores")) || [];
+            highScores.push(score);
+            highScores.sort((a, b) => b - a); // Сортируем рекорды по убыванию
+            highScores = highScores.slice(0, 5); // Оставляем только топ-5 рекордов
+            localStorage.setItem("highScores", JSON.stringify(highScores));
+            renderHighScores();
+        }
+
+        // Отображение рекордов
+        function renderHighScores() {
+            let highScores = JSON.parse(localStorage.getItem("highScores")) || [];
+            let highScoresList = document.getElementById("highScoresList");
+            highScoresList.innerHTML = ""; // Очищаем список
+
+            highScores.forEach((score, index) => {
+                let listItem = document.createElement("li");
+                listItem.textContent = `#${index + 1}: ${score}`;
+                highScoresList.appendChild(listItem);
+            });
+        }
+
+        // Инициализация отображения рекордов при загрузке страницы
+        renderHighScores();
     </script>
 </body>
 </html>
