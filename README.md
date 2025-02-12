@@ -23,17 +23,17 @@
             font-family: Arial, sans-serif;
             color: black;
             background: rgba(255, 255, 255, 0.7);
-            padding: 10px; /* Увеличиваем padding для лучшего вида */
+            padding: 10px;
             border-radius: 5px;
-            display: flex; /* Используем flexbox для вертикального расположения */
-            flex-direction: column; /* Размещаем элементы в колонку */
-            align-items: flex-start; /* Выравниваем элементы по левому краю */
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
         }
-        #scoreboard > div { /* Стиль для каждого элемента scoreboard */
-            margin-bottom: 5px; /* Отступ между элементами */
+        #scoreboard > div {
+            margin-bottom: 5px;
         }
         #restartButton {
-            margin-top: 10px; /* Отступ сверху от scoreboard */
+            margin-top: 10px;
             font-size: 16px;
             padding: 5px 10px;
             cursor: pointer;
@@ -44,13 +44,12 @@
             background: rgba(255, 255, 255, 0.7);
             padding: 10px;
             border-radius: 5px;
-            max-height: 300px; /* Ограничиваем высоту списка */
-            overflow-y: auto; /* Добавляем прокрутку, если список длинный */
+            max-height: 300px;
+            overflow-y: auto;
         }
         #highScoresList li {
             margin-bottom: 5px;
         }
-
     </style>
 </head>
 <body>
@@ -61,19 +60,34 @@
         <div id="highScores">
             <h3>Рекорды:</h3>
             <ol id="highScoresList">
-                </ol>
+            </ol>
         </div>
     </div>
     <canvas id="gameCanvas"></canvas>
     <script>
-        // ... (остальной код игры)
+        let canvas = document.getElementById("gameCanvas");
+        let ctx = canvas.getContext("2d");
+        canvas.width = 800;
+        canvas.height = 600;
+
+        let snake = [{ x: 400, y: 300 }];
+        let food = { x: Math.random() * (canvas.width - 20), y: Math.random() * (canvas.height - 20) };
+        let snakeSize = 20;
+        let speed = 20;
+        let dx = speed;
+        let dy = 0;
+        let score = 0;
+        let bestScore = localStorage.getItem("bestScore") || 0;
+        let frameRate = 100;
+
+        document.getElementById("bestScore").innerText = bestScore;
 
         let highScores = JSON.parse(localStorage.getItem("highScores")) || [];
 
         function updateHighScores() {
             highScores.push(score);
-            highScores.sort((a, b) => b - a); // Сортируем по убыванию
-            highScores = highScores.slice(0, 500); // Оставляем только топ-500
+            highScores.sort((a, b) => b - a);
+            highScores = highScores.slice(0, 500);
 
             localStorage.setItem("highScores", JSON.stringify(highScores));
             renderHighScores();
@@ -81,7 +95,7 @@
 
         function renderHighScores() {
             const highScoresList = document.getElementById("highScoresList");
-            highScoresList.innerHTML = ""; // Очищаем список
+            highScoresList.innerHTML = "";
 
             highScores.forEach((score, index) => {
                 const li = document.createElement("li");
@@ -90,30 +104,104 @@
             });
         }
 
-        renderHighScores(); // Выводим рекорды при загрузке страницы
+        renderHighScores();
 
+        document.addEventListener("keydown", function (event) {
+            switch (event.key) {
+                case "ArrowUp":
+                    if (dy === 0) {
+                        dy = -speed;
+                        dx = 0;
+                    }
+                    break;
+                case "ArrowDown":
+                    if (dy === 0) {
+                        dy = speed;
+                        dx = 0;
+                    }
+                    break;
+                case "ArrowLeft":
+                    if (dx === 0) {
+                        dx = -speed;
+                        dy = 0;
+                    }
+                    break;
+                case "ArrowRight":
+                    if (dx === 0) {
+                        dx = speed;
+                        dy = 0;
+                    }
+                    break;
+            }
+        });
 
         function gameLoop() {
             setTimeout(() => {
-                // ... (основной цикл игры)
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                if (Math.hypot(head.x - food.x, head.y - food.y) < snakeSize) {
-                    // ... (логика съедания еды)
-                    updateHighScores(); // Обновляем список рекордов
+                let head = { x: snake[0].x + dx, y: snake[0].y + dy };
+
+                if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height || selfCollision(head)) {
+                    if (score > bestScore) {
+                        bestScore = score;
+                        localStorage.setItem("bestScore", bestScore);
+                    }
+                    alert("Игра окончена! Ваш результат: " + score);
+                    restartGame();
+                    return;
                 }
 
-                // ... (отрисовка)
+                snake.unshift(head);
+
+                if (Math.hypot(head.x - food.x, head.y - food.y) < snakeSize) {
+                    score++;
+                    document.getElementById("score").innerText = score;
+                    food.x = Math.random() * (canvas.width - 20);
+                    food.y = Math.random() * (canvas.height - 20);
+                    if (score % 100 === 0) frameRate *= 0.9;
+                    updateHighScores(); // Обновляем список рекордов
+                } else {
+                    snake.pop();
+                }
+
+                ctx.fillStyle = "green";
+                snake.forEach(segment => {
+                    ctx.fillRect(segment.x, segment.y, snakeSize, snakeSize);
+                });
+
+                ctx.fillStyle = "white";
+                ctx.beginPath();
+                ctx.arc(food.x, food.y, 10, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = "black";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
                 requestAnimationFrame(gameLoop);
             }, frameRate);
         }
 
+        function selfCollision(head) {
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         function restartGame() {
-            // ... (логика перезапуска)
+            score = 0;
+            document.getElementById("score").innerText = score;
+            snake = [{ x: 400, y: 300 }];
+            dx = speed;
+            dy = 0;
+            frameRate = 100;
+            gameLoop();
             renderHighScores(); // Обновляем список рекордов после перезапуска
         }
 
-        // ... (остальной код)
-
+        gameLoop();
     </script>
 </body>
 </html>
