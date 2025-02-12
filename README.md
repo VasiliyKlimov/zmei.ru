@@ -99,8 +99,8 @@
         swatterImage.src = 'https://i.imgur.com/YhTG8xZ.png';
 
         // Звуки
-        let hitSound = new Audio('https://www.myinstants.com/media/sounds/cartoon-bird-whistle.mp3'); // Новый звук удара
-        let missSound = new Audio('https://www.fesliyanstudios.com/play-mp3/1257'); // Звук промаха
+        let hitSound = new Audio('https://www.soundjay.com/button/beep-07.wav'); // Новый звук удара
+        let missSound = new Audio('https://www.soundjay.com/button/beep-08b.wav'); // Новый звук промаха
         let bgMusic = new Audio('https://www.myinstants.com/media/sounds/8-bit-music.mp3');
         bgMusic.loop = true;
 
