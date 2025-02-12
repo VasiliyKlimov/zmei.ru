@@ -35,9 +35,16 @@
         swatterImage.src = 'https://i.imgur.com/YhTG8xZ.png';
         let hitSound = new Audio('https://www.fesliyanstudios.com/play-mp3/387');
         
+        // Флаг для отслеживания удара
+        let isHit = false;
+
         function drawFly() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(flyImage, fly.x, fly.y, 40, 40);
+            if (isHit) {
+                ctx.drawImage(swatterImage, fly.x, fly.y, 40, 40);
+                isHit = false; // Сбрасываем флаг после отрисовки
+            }
         }
         
         function moveFly() {
@@ -53,13 +60,12 @@
             const mouseX = event.clientX - rect.left;
             const mouseY = event.clientY - rect.top;
             
-            ctx.drawImage(swatterImage, mouseX - 20, mouseY - 20, 50, 50);
-            
             if (mouseX >= fly.x && mouseX <= fly.x + 40 && mouseY >= fly.y && mouseY <= fly.y + 40) {
                 score++;
                 document.getElementById("score").textContent = score;
                 fly = { x: Math.random() * 560, y: Math.random() * 360, speed: fly.speed + 0.1 };
                 hitSound.play();
+                isHit = true; // Устанавливаем флаг удара
             }
         }
         
