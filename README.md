@@ -10,6 +10,10 @@
             font-family: 'Press Start 2P', cursive;
             color: white;
             overflow: hidden; /* Предотвращаем прокрутку */
+            margin: 0; /* Убираем отступы body */
+        }
+        h1, p {
+            margin: 10px 0; /* Уменьшаем margin для заголовка и параграфа */
         }
         canvas {
             display: block;
@@ -30,6 +34,9 @@
             transform: translate(-50%, -50%);
             font-size: 36px;
             display: none; /* Скрываем сообщение по умолчанию */
+            background-color: rgba(0, 0, 0, 0.7); /* Полупрозрачный фон для сообщения */
+            padding: 20px;
+            border-radius: 10px;
         }
         button { /* Стиль для кнопки рестарта */
             margin-top: 20px;
@@ -43,8 +50,13 @@
             display: inline-block;
             font-size: 16px;
             cursor: pointer;
+            border-radius: 5px; /* Закругление углов кнопки */
+        }
+        button:hover {
+            background-color: #45a049; /* Темнее зеленый при наведении */
         }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet"> <!-- Подключение шрифта -->
 </head>
 <body>
     <h1>Мухобойка 8-bit</h1>
@@ -60,84 +72,87 @@
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         let score = 0;
-        let fly = { x: Math.random() * 560, y: Math.random() * 360, speed: 2 };
+        let fly = { x: Math.random() * 560, y: Math.random() * 360, speed: 2 }; // Начальные параметры мухи
         let flyImage = new Image();
-        flyImage.src = 'https://i.imgur.com/F2K4R6J.png';
+        flyImage.src = 'https://i.imgur.com/F2K4R6J.png'; // Изображение мухи
         let swatterImage = new Image();
-        swatterImage.src = 'https://i.imgur.com/YhTG8xZ.png';
-        let hitSound = new Audio('https://www.myinstants.com/media/sounds/slap.mp3');
-        let missSound = new Audio('https://www.myinstants.com/media/sounds/miss.mp3');
+        swatterImage.src = 'https://i.imgur.com/YhTG8xZ.png'; // Изображение мухобойки
+        let hitSound = new Audio('https://www.myinstants.com/media/sounds/slap.mp3'); // Звук попадания
+        let missSound = new Audio('https://www.myinstants.com/media/sounds/miss.mp3'); // Звук промаха
 
-        let mouseX = 0, mouseY = 0;
-        let gameOver = false; // Флаг для состояния игры
+        let mouseX = 0, mouseY = 0; // Позиция мыши
+        let gameOver = false; // Флаг состояния игры
+        let moveFlyInterval; // Переменная для хранения интервала движения мухи
 
         function drawFly() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(flyImage, fly.x, fly.y, 40, 40);
-            ctx.drawImage(swatterImage, mouseX - 20, mouseY - 20, 40, 40);
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Очистка канваса перед каждым кадром
+            ctx.drawImage(flyImage, fly.x, fly.y, 40, 40); // Рисуем муху
+            ctx.drawImage(swatterImage, mouseX - 20, mouseY - 20, 40, 40); // Рисуем мухобойку на месте курсора
         }
 
         function moveFly() {
             if (gameOver) return; // Прекращаем движение, если игра окончена
 
+            // Случайное движение мухи
             fly.x += (Math.random() - 0.5) * fly.speed * 2;
             fly.y += (Math.random() - 0.5) * fly.speed * 2;
+
+            // Ограничение позиции мухи в пределах канваса
             fly.x = Math.max(0, Math.min(fly.x, canvas.width - 40));
             fly.y = Math.max(0, Math.min(fly.y, canvas.height - 40));
-            drawFly();
+            drawFly(); // Отрисовка мухи и мухобойки
         }
 
         function hitFly(event) {
             if (gameOver) return; // Не обрабатываем клики, если игра окончена
 
-            const rect = canvas.getBoundingClientRect();
-            mouseX = event.clientX - rect.left;
-            mouseY = event.clientY - rect.top;
+            const rect = canvas.getBoundingClientRect(); // Получаем координаты канваса относительно окна браузера
+            mouseX = event.clientX - rect.left; // Получаем X координату мыши относительно канваса
+            mouseY = event.clientY - rect.top; // Получаем Y координату мыши относительно канваса
 
+            // Проверка попадания по мухе
             if (mouseX >= fly.x && mouseX <= fly.x + 40 && mouseY >= fly.y && mouseY <= fly.y + 40) {
-                score++;
-                document.getElementById("score").textContent = score;
-                fly = { x: Math.random() * 560, y: Math.random() * 360, speed: Math.min(fly.speed + 0.1, 5) };
-                hitSound.play();
+                score++; // Увеличиваем счет
+                document.getElementById("score").textContent = score; // Обновляем отображение счета
+                fly = { x: Math.random() * 560, y: Math.random() * 360, speed: Math.min(fly.speed + 0.2, 7) }; // Увеличиваем скорость мухи и меняем позицию
+                hitSound.play(); // Проигрываем звук попадания
             } else {
-                missSound.play();
+                missSound.play(); // Проигрываем звук промаха
             }
         }
 
+        // Обработчик движения мыши для перемещения мухобойки
         canvas.addEventListener("mousemove", (event) => {
             const rect = canvas.getBoundingClientRect();
             mouseX = event.clientX - rect.left;
             mouseY = event.clientY - rect.top;
         });
 
-        canvas.addEventListener("click", hitFly);
-        setInterval(moveFly, 50);
-        drawFly();
+        canvas.addEventListener("click", hitFly); // Обработчик кликов для "удара" мухобойкой
+        moveFlyInterval = setInterval(moveFly, 50); // Запускаем движение мухи каждые 50 миллисекунд
+        drawFly(); // Первоначальная отрисовка
 
-
-        // Добавляем обработку Game Over
+        // Функция проверки окончания игры
         function checkGameOver() {
-            if (score >= 20) { // Например, игра заканчивается при достижении 20 очков
-                gameOver = true;
+            if (score >= 20) { // Условие окончания игры (например, 20 пойманных мух)
+                gameOver = true; // Устанавливаем флаг окончания игры
                 clearInterval(moveFlyInterval); // Останавливаем движение мухи
-                document.getElementById("message").style.display = "block"; // Показываем сообщение
-                document.getElementById("final-score").textContent = score; // Выводим счет
+                document.getElementById("message").style.display = "block"; // Показываем сообщение об окончании игры
+                document.getElementById("final-score").textContent = score; // Выводим финальный счет в сообщении
             }
         }
 
-        setInterval(checkGameOver, 100); // Проверяем Game Over каждые 100 мс
+        setInterval(checkGameOver, 100); // Проверяем условие Game Over каждые 100 мс
 
-        // Добавляем кнопку "Рестарт"
+        // Обработчик кнопки "Рестарт"
         document.getElementById("restart-button").addEventListener("click", () => {
-            score = 0;
-            document.getElementById("score").textContent = 0;
-            fly = { x: Math.random() * 560, y: Math.random() * 360, speed: 2 };
-            gameOver = false;
-            document.getElementById("message").style.display = "none";
+            score = 0; // Сбрасываем счет
+            document.getElementById("score").textContent = 0; // Обновляем отображение счета
+            fly = { x: Math.random() * 560, y: Math.random() * 360, speed: 2 }; // Возвращаем начальные параметры мухи
+            gameOver = false; // Сбрасываем флаг окончания игры
+            document.getElementById("message").style.display = "none"; // Скрываем сообщение об окончании игры
             moveFlyInterval = setInterval(moveFly, 50); // Запускаем движение мухи снова
         });
-
-        let moveFlyInterval = setInterval(moveFly, 50); // Переменная для хранения интервала
 
     </script>
 </body>
