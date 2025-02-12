@@ -31,7 +31,7 @@
             margin-top: 10px;
             font-size: 20px;
         }
-        #message {
+        #message, #start-screen {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -41,6 +41,7 @@
             background-color: rgba(0, 0, 0, 0.7);
             padding: 20px;
             border-radius: 10px;
+            text-align: center;
         }
         button {
             margin-top: 20px;
@@ -56,6 +57,9 @@
         button:hover {
             background-color: #45a049;
         }
+        #start-screen {
+            display: block;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
@@ -70,6 +74,9 @@
         Игра окончена! Счет: <span id="final-score">0</span>
         <button id="restart-button">Перезапустить</button>
     </div>
+    <div id="start-screen">
+        <button id="start-button">Начать игру</button>
+    </div>
 
     <script>
         const canvas = document.getElementById("gameCanvas");
@@ -78,6 +85,7 @@
         let timeLeft = 30;
         let gameOver = false;
         let paused = false;
+        let gameStarted = false;
 
         // Разные виды мух 🪰
         const flyImages = [
@@ -91,8 +99,8 @@
         let swatterImage = new Image();
         swatterImage.src = 'https://i.imgur.com/YhTG8xZ.png';
 
-        // Новый звук удара (битое стекло)
-        let hitSound = new Audio('https://www.fesliyanstudios.com/play-mp3/4385');
+        // Звуки
+        let hitSound = new Audio('https://www.fesliyanstudios.com/play-mp3/4385'); // Звук битого стекла
         let missSound = new Audio('https://www.myinstants.com/media/sounds/miss.mp3');
         let bgMusic = new Audio('https://www.myinstants.com/media/sounds/8-bit-music.mp3');
         bgMusic.loop = true;
@@ -122,7 +130,7 @@
         }
 
         function moveFly() {
-            if (gameOver || paused) return;
+            if (gameOver || paused || !gameStarted) return;
             fly.x += (Math.random() - 0.5) * fly.speed * 2;
             fly.y += (Math.random() - 0.5) * fly.speed * 2;
             fly.x = Math.max(0, Math.min(fly.x, canvas.width - 40));
@@ -131,7 +139,7 @@
         }
 
         function hitFly(event) {
-            if (gameOver || paused) return;
+            if (gameOver || paused || !gameStarted) return;
             const rect = canvas.getBoundingClientRect();
             mouseX = event.clientX - rect.left;
             mouseY = event.clientY - rect.top;
@@ -151,7 +159,7 @@
         }
 
         function countdown() {
-            if (timeLeft > 0 && !paused) {
+            if (timeLeft > 0 && !paused && gameStarted) {
                 timeLeft--;
                 document.getElementById("timer").textContent = timeLeft;
             } else if (timeLeft <= 0) {
@@ -171,6 +179,14 @@
         });
 
         canvas.addEventListener("click", hitFly);
+        canvas.addEventListener("touchstart", (event) => {
+            event.preventDefault();
+            const touch = event.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            mouseX = touch.clientX - rect.left;
+            mouseY = touch.clientY - rect.top;
+            hitFly(event);
+        });
 
         document.addEventListener("keydown", (event) => {
             if (event.key === "p" || event.key === "P") {
@@ -196,9 +212,14 @@
             bgMusic.play();
         });
 
+        document.getElementById("start-button").addEventListener("click", () => {
+            gameStarted = true;
+            document.getElementById("start-screen").style.display = "none";
+            bgMusic.play();
+        });
+
         let flyInterval = setInterval(moveFly, 50);
         let timerInterval = setInterval(countdown, 1000);
-        bgMusic.play();
     </script>
 </body>
 </html>
