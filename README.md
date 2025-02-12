@@ -66,7 +66,7 @@
 <body>
     <h1>Мухобойка 8-битная 🪰🔨</h1>
     <p>Лови мух мухобойкой! Нажмите, чтобы ударить.</p>
-    <canvas id="gameCanvas" width="600" height="400"></canvas>
+    <canvas id="gameCanvas" width="800" height="600"></canvas> <!-- Увеличен размер области игры -->
     <div id="score-container">Очки: <span id="score">0</span></div>
     <div id="timer-container">⏳ Время: <span id="timer">30</span> сек</div>
     <div id="message">
@@ -100,12 +100,12 @@
         swatterImage.src = 'https://i.imgur.com/YhTG8xZ.png';
 
         // Звуки
-        let hitSound = new Audio('https://www.fesliyanstudios.com/play-mp3/4385'); // Звук битого стекла (при попадании)
+        let hitSound = new Audio('https://www.soundjay.com/button/beep-07.wav'); // Новый звук попадания
         let missSound = new Audio('https://www.fesliyanstudios.com/play-mp3/1257'); // Новый звук промаха
         let bgMusic = new Audio('https://www.myinstants.com/media/sounds/8-bit-music.mp3');
         bgMusic.loop = true;
 
-        let fly = { x: Math.random() * 560, y: Math.random() * 360, speed: 2 };
+        let fly = { x: Math.random() * 760, y: Math.random() * 560, speed: 2 }; // Обновлены размеры для новых границ
         let mouseX = 0, mouseY = 0;
         let swatterAnimation = false;
 
@@ -152,9 +152,9 @@
                 score++;
                 document.getElementById("score").textContent = score;
 
-                fly = { x: Math.random() * 560, y: Math.random() * 360, speed: Math.min(fly.speed + 0.2, 7) };
+                fly = { x: Math.random() * 760, y: Math.random() * 560, speed: Math.min(fly.speed + 0.2, 7) };
                 flyImage.src = flyImages[Math.floor(Math.random() * flyImages.length)];
-                hitSound.play(); // Проигрываем звук попадания
+                hitSound.play(); // Проигрываем новый звук попадания
             } else {
                 missSound.play(); // Проигрываем новый звук промаха
             }
@@ -210,7 +210,7 @@
             timeLeft = 30;
             document.getElementById("score").textContent = score;
             document.getElementById("timer").textContent = timeLeft;
-            fly = { x: Math.random() * 560, y: Math.random() * 360, speed: 2 };
+            fly = { x: Math.random() * 760, y: Math.random() * 560, speed: 2 };
             gameOver = false;
             document.getElementById("message").style.display = "none";
             flyInterval = setInterval(moveFly, 50);
