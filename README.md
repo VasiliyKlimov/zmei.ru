@@ -64,7 +64,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
-
     <h1>Мухобойка 8-битная 🪰🔨</h1>
     <p>Лови мух мухобойкой! Нажмите, чтобы ударить.</p>
     <canvas id="gameCanvas" width="600" height="400"></canvas>
@@ -77,7 +76,6 @@
     <div id="start-screen">
         <button id="start-button">Начать игру</button>
     </div>
-
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
@@ -86,7 +84,6 @@
         let gameOver = false;
         let paused = false;
         let gameStarted = false;
-
         // Разные виды мух 🪰
         const flyImages = [
             'https://i.imgur.com/F2K4R6J.png',
@@ -95,31 +92,25 @@
         ];
         let flyImage = new Image();
         flyImage.src = flyImages[Math.floor(Math.random() * flyImages.length)];
-
         let swatterImage = new Image();
         swatterImage.src = 'https://i.imgur.com/YhTG8xZ.png';
-
         // Звуки
         let hitSound = new Audio('https://www.fesliyanstudios.com/play-mp3/4385'); // Звук битого стекла
-        let missSound = new Audio('https://www.myinstants.com/media/sounds/miss.mp3');
+        let missSound = new Audio('https://www.myinstants.com/media/sounds/wrong-buzzer-sound-effect.mp3'); // Звук промаха изменен на "buzzer"
         let bgMusic = new Audio('https://www.myinstants.com/media/sounds/8-bit-music.mp3');
         bgMusic.loop = true;
-
         let fly = { x: Math.random() * 560, y: Math.random() * 360, speed: 2 };
         let mouseX = 0, mouseY = 0;
         let swatterAnimation = false;
-
         function drawFly() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(flyImage, fly.x, fly.y, 40, 40);
-
             if (swatterAnimation) {
                 ctx.save();
                 ctx.translate(mouseX, mouseY);
                 ctx.rotate(-0.3);
                 ctx.drawImage(swatterImage, -20, -20, 40, 40);
                 ctx.restore();
-
                 setTimeout(() => {
                     swatterAnimation = false;
                     drawFly();
@@ -128,7 +119,6 @@
                 ctx.drawImage(swatterImage, mouseX - 20, mouseY - 20, 40, 40);
             }
         }
-
         function moveFly() {
             if (gameOver || paused || !gameStarted) return;
             fly.x += (Math.random() - 0.5) * fly.speed * 2;
@@ -137,13 +127,11 @@
             fly.y = Math.max(0, Math.min(fly.y, canvas.height - 40));
             drawFly();
         }
-
         function hitFly(event) {
             if (gameOver || paused || !gameStarted) return;
             const rect = canvas.getBoundingClientRect();
             mouseX = event.clientX - rect.left;
             mouseY = event.clientY - rect.top;
-
             if (mouseX >= fly.x && mouseX <= fly.x + 40 && mouseY >= fly.y && mouseY <= fly.y + 40) {
                 score++;
                 document.getElementById("score").textContent = score;
@@ -153,11 +141,9 @@
             } else {
                 missSound.play();
             }
-
             swatterAnimation = true;
             drawFly();
         }
-
         function countdown() {
             if (timeLeft > 0 && !paused && gameStarted) {
                 timeLeft--;
@@ -171,13 +157,11 @@
                 bgMusic.pause();
             }
         }
-
         canvas.addEventListener("mousemove", (event) => {
             const rect = canvas.getBoundingClientRect();
             mouseX = event.clientX - rect.left;
             mouseY = event.clientY - rect.top;
         });
-
         canvas.addEventListener("click", hitFly);
         canvas.addEventListener("touchstart", (event) => {
             event.preventDefault();
@@ -187,7 +171,6 @@
             mouseY = touch.clientY - rect.top;
             hitFly(event);
         });
-
         document.addEventListener("keydown", (event) => {
             if (event.key === "p" || event.key === "P") {
                 paused = !paused;
@@ -198,7 +181,6 @@
                 }
             }
         });
-
         document.getElementById("restart-button").addEventListener("click", () => {
             score = 0;
             timeLeft = 30;
@@ -211,13 +193,11 @@
             timerInterval = setInterval(countdown, 1000);
             bgMusic.play();
         });
-
         document.getElementById("start-button").addEventListener("click", () => {
             gameStarted = true;
             document.getElementById("start-screen").style.display = "none";
             bgMusic.play();
         });
-
         let flyInterval = setInterval(moveFly, 50);
         let timerInterval = setInterval(countdown, 1000);
     </script>
