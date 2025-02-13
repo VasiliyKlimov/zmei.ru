@@ -1,4 +1,3 @@
-
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -65,7 +64,7 @@
 <body>
     <h1>Мухобойка 8-битная 🪰🔨</h1>
     <p>Лови мух мухобойкой! Нажмите, чтобы ударить.</p>
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <canvas id="gameCanvas" width="800" height="600"></canvas> <!-- Изменены размеры холста -->
     <div id="score-container">Очки: <span id="score">0</span></div>
     <div id="timer-container">⏳ Время: <span id="timer">30</span> сек</div>
     <div id="message">
@@ -91,7 +90,6 @@
             'https://i.imgur.com/a6yXNvJ.png',
             'https://i.imgur.com/ZvXxVvC.png'
         ];
-
         let flyImage = new Image();
         flyImage.src = flyImages[Math.floor(Math.random() * flyImages.length)];
 
@@ -99,12 +97,12 @@
         swatterImage.src = 'https://i.imgur.com/YhTG8xZ.png';
 
         // Звуки
-        let hitSound = new Audio('https://www.soundjay.com/button/beep-07.wav'); // Новый звук удара
-        let missSound = new Audio('https://www.soundjay.com/button/beep-08b.wav'); // Новый звук промаха
+        let hitSound = new Audio('https://www.myinstants.com/media/sounds/cartoon-bird-whistle.mp3'); // Новый звук удара
+        let missSound = new Audio('https://www.fesliyanstudios.com/play-mp3/1257'); // Новый звук промаха
         let bgMusic = new Audio('https://www.myinstants.com/media/sounds/8-bit-music.mp3');
         bgMusic.loop = true;
 
-        let fly = { x: Math.random() * 760, y: Math.random() * 560, speed: 2 }; // Учитываем новый размер холста
+        let fly = { x: Math.random() * (canvas.width - 40), y: Math.random() * (canvas.height - 40), speed: 2 }; // Корректные координаты для нового размера холста
         let mouseX = 0, mouseY = 0;
         let swatterAnimation = false;
 
@@ -115,13 +113,13 @@
             if (swatterAnimation) {
                 ctx.save();
                 ctx.translate(mouseX, mouseY);
-                ctx.rotate(-0.3);
+                ctx.rotate(-0.3); // Малый наклон при ударе
                 ctx.drawImage(swatterImage, -20, -20, 40, 40);
                 ctx.restore();
 
                 setTimeout(() => {
                     swatterAnimation = false;
-                    drawFly();
+                    drawFly(); // Обновляем отрисовку после анимации
                 }, 100);
             } else {
                 ctx.drawImage(swatterImage, mouseX - 20, mouseY - 20, 40, 40);
@@ -130,30 +128,42 @@
 
         function moveFly() {
             if (gameOver || paused || !gameStarted) return;
+
             fly.x += (Math.random() - 0.5) * fly.speed * 2;
             fly.y += (Math.random() - 0.5) * fly.speed * 2;
-            fly.x = Math.max(0, Math.min(fly.x, canvas.width - 40)); // Учитываем новый размер холста
-            fly.y = Math.max(0, Math.min(fly.y, canvas.height - 40)); // Учитываем новый размер холста
+
+            // Ограничение движения мухи внутри холста
+            fly.x = Math.max(0, Math.min(fly.x, canvas.width - 40));
+            fly.y = Math.max(0, Math.min(fly.y, canvas.height - 40));
+
             drawFly();
         }
 
         function hitFly(event) {
             if (gameOver || paused || !gameStarted) return;
+
             const rect = canvas.getBoundingClientRect();
             mouseX = event.clientX - rect.left;
             mouseY = event.clientY - rect.top;
 
+            // Проверяем попадание по мухе
             if (mouseX >= fly.x && mouseX <= fly.x + 40 && mouseY >= fly.y && mouseY <= fly.y + 40) {
                 score++;
                 document.getElementById("score").textContent = score;
-                fly = { x: Math.random() * 760, y: Math.random() * 560, speed: Math.min(fly.speed + 0.2, 7) };
+
+                // Перемещаем муху в новую случайную позицию
+                fly.x = Math.random() * (canvas.width - 40);
+                fly.y = Math.random() * (canvas.height - 40);
+                fly.speed = Math.min(fly.speed + 0.2, 7); // Увеличиваем скорость, но ограничиваем максимальным значением
+
+                // Меняем изображение мухи
                 flyImage.src = flyImages[Math.floor(Math.random() * flyImages.length)];
-                hitSound.play();
+                hitSound.play(); // Проигрываем звук удара
             } else {
-                missSound.play();
+                missSound.play(); // Проигрываем звук промаха
             }
 
-            swatterAnimation = true;
+            swatterAnimation = true; // Активируем анимацию мухобойки
             drawFly();
         }
 
@@ -167,7 +177,7 @@
                 clearInterval(timerInterval);
                 document.getElementById("message").style.display = "block";
                 document.getElementById("final-score").textContent = score;
-                bgMusic.pause();
+                bgMusic.pause(); // Останавливаем фоновую музыку
             }
         }
 
@@ -178,6 +188,7 @@
         });
 
         canvas.addEventListener("click", hitFly);
+
         canvas.addEventListener("touchstart", (event) => {
             event.preventDefault();
             const touch = event.touches[0];
@@ -203,20 +214,27 @@
             timeLeft = 30;
             document.getElementById("score").textContent = score;
             document.getElementById("timer").textContent = timeLeft;
-            fly = { x: Math.random() * 760, y: Math.random() * 560, speed: 2 };
+            fly = { x: Math.random() * (canvas.width - 40), y: Math.random() * (canvas.height - 40), speed: 2 };
             gameOver = false;
             document.getElementById("message").style.display = "none";
+
+            // Перезапускаем интервалы
             flyInterval = setInterval(moveFly, 50);
             timerInterval = setInterval(countdown, 1000);
-            bgMusic.play();
+            bgMusic.play(); // Возобновляем фоновую музыку
         });
 
         document.getElementById("start-button").addEventListener("click", () => {
             gameStarted = true;
             document.getElementById("start-screen").style.display = "none";
-            bgMusic.play();
+            bgMusic.play(); // Включаем фоновую музыку
+
+            // Запускаем движение мухи и таймер
+            flyInterval = setInterval(moveFly, 50);
+            timerInterval = setInterval(countdown, 1000);
         });
 
+        // Инициализация интервалов
         let flyInterval = setInterval(moveFly, 50);
         let timerInterval = setInterval(countdown, 1000);
     </script>
