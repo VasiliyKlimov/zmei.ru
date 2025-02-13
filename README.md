@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -17,7 +17,7 @@
             margin: 20px auto;
             border: 3px solid white;
             background: #73c48f;
-            cursor: crosshair;
+            cursor: url('https://i.imgur.com/R9zVK52.png'), auto; /* Курсор в виде прицела */
         }
         #score-container, #timer-container {
             margin-top: 10px;
@@ -67,7 +67,7 @@
         let fly = { x: Math.random() * (canvas.width - 40), y: Math.random() * (canvas.height - 40) };
 
         const flyImage = new Image();
-        flyImage.src = 'https://i.imgur.com/F2K4R6J.png';
+        flyImage.src = 'https://i.imgur.com/Qc3pQ2t.png'; // Муха в виде иконки
         
         const swatterImage = new Image();
         swatterImage.src = 'https://i.imgur.com/YhTG8xZ.png';
