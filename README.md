@@ -19,32 +19,29 @@
         let score = 0;
         let timeLeft = 30;
         let gameOver = false;
-        let fly = { x: Math.random() * (canvas.width - 40), y: Math.random() * (canvas.height - 40) };
+        const fly = { x: Math.random() * (canvas.width - 40), y: Math.random() * (canvas.height - 40) };
 
         const flyImage = new Image();
         flyImage.src = 'https://i.imgur.com/Qc3pQ2t.png'; // Fly icon
 
-        const swatterImage = new Image();
-        swatterImage.src = 'https://i.imgur.com/YhTG8xZ.png';
-
-        flyImage.onload = function() {
-            drawGame(); // Initial draw after image loads
+        flyImage.onload = () => {
+            drawFly();
             setInterval(countdown, 1000); // Start the timer after the image loads
         };
 
-        function drawGame() {
+        const drawFly = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(flyImage, fly.x, fly.y, 40, 40);
-        }
+        };
 
-        function moveFly() {
+        const moveFly = () => {
             if (gameOver) return;
             fly.x = Math.random() * (canvas.width - 40);
             fly.y = Math.random() * (canvas.height - 40);
-            drawGame();
-        }
+            drawFly();
+        };
 
-        function hitFly(event) {
+        const hitFly = (event) => {
             if (gameOver) return;
             const rect = canvas.getBoundingClientRect();
             const mouseX = event.clientX - rect.left;
@@ -54,21 +51,20 @@
                 document.getElementById("score").textContent = score;
                 moveFly();
             }
-        }
+        };
 
-        function countdown() {
+        const countdown = () => {
             if (timeLeft > 0) {
                 timeLeft--;
                 document.getElementById("timer").textContent = timeLeft;
             } else {
                 gameOver = true;
-                document.getElementById("message").style.display = "block"; // Or use style.visibility = "visible";
+                document.getElementById("message").style.display = "block";
                 document.getElementById("final-score").textContent = score;
             }
-        }
+        };
 
         canvas.addEventListener("click", hitFly);
-
     </script>
 </body>
 </html>
