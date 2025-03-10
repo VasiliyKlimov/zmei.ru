@@ -1,4 +1,3 @@
-
 <html>
 <head>
     <title>Hit the Fly!</title>
@@ -23,7 +22,7 @@
         let fly = { x: Math.random() * (canvas.width - 40), y: Math.random() * (canvas.height - 40) };
 
         const flyImage = new Image();
-        flyImage.src = 'https://i.imgur.com/Qc3pQ2t.png'; // Муха в виде иконки
+        flyImage.src = 'https://i.imgur.com/Qc3pQ2t.png'; // Fly icon
 
         const swatterImage = new Image();
         swatterImage.src = 'https://i.imgur.com/YhTG8xZ.png';
