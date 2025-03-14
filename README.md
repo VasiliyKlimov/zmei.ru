@@ -5,7 +5,7 @@
     <title>Мухобойка 8-бит 🪰🔨</title>
     <style>
         body {
-            background: url('ad65a1a2-3268-4e0a-af0b-06b6ce9cc4f4.png');
+            background: url('https://your-image-url.com');
             image-rendering: pixelated;
             text-align: center;
             font-family: 'Press Start 2P', cursive;
