@@ -86,6 +86,7 @@
         flyImage.onload = () => {
             drawFly();
             setInterval(countdown, 1000); // Start the timer after the image loads
+            setInterval(moveFly, 1000); // Move the fly every second
         };
 
         const drawFly = () => {
@@ -104,11 +105,9 @@
 
         const moveFly = () => {
             if (gameOver) return;
-            fly.x += (Math.random() - 0.5) * fly.speed * 10;
-            fly.y += (Math.random() - 0.5) * fly.speed * 10;
-            fly.x = Math.max(0, Math.min(fly.x, canvas.width - 40));
-            fly.y = Math.max(0, Math.min(fly.y, canvas.height - 40));
-            drawFly();
+            fly.x = Math.random() * (canvas.width - 40); // Хаотичное появление по X
+            fly.y = Math.random() * (canvas.height - 40); // Хаотичное появление по Y
+            drawFly(); // Перерисовываем муху после перемещения
         };
 
         const hitFly = (event) => {
@@ -119,6 +118,13 @@
             if (mouseX >= fly.x && mouseX <= fly.x + 40 && mouseY >= fly.y && mouseY <= fly.y + 40) {
                 score++;
                 document.getElementById("score").textContent = score;
+
+                // Обновление времени после 10 очков
+                if (score % 10 === 0) {
+                    timeLeft += 10; // Добавляем 10 секунд
+                    document.getElementById("timer").textContent = timeLeft;
+                }
+
                 fly.speed = Math.min(fly.speed + 0.2, 7); // Увеличиваем скорость мухи
                 moveFly();
                 hitSound.play();
