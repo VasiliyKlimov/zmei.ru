@@ -2,215 +2,153 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Мухобойка 8-бит 🪰🔨</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Убей Муху</title>
     <style>
+        /* --- Стили для страницы --- */
         body {
-            background: url('https://your-image-url.com');
-            image-rendering: pixelated;
-            text-align: center;
-            font-family: 'Press Start 2P', cursive;
-            color: white;
-            overflow: hidden;
-            margin: 0;
+            display: flex;              /* Используем Flexbox для центрирования */
+            justify-content: center;    /* Центрирование по горизонтали */
+            align-items: center;        /* Центрирование по вертикали */
+            flex-direction: column;     /* Элементы располагаются друг под другом */
+            min-height: 100vh;          /* Минимальная высота равна высоте экрана */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Выбираем шрифт */
+            background-color: #f0f0f0; /* Светло-серый фон */
+            margin: 0;                  /* Убираем отступы по умолчанию у body */
         }
-        canvas {
-            display: block;
-            margin: 20px auto;
-            border: 3px solid white;
-            background: #73c48f;
-            image-rendering: pixelated;
-            cursor: crosshair;
+
+        h1 {
+            color: #333;                /* Темный цвет заголовка */
         }
-        #score-container, #timer-container {
-            margin-top: 10px;
-            font-size: 20px;
+
+        /* --- Стили для контейнера игры --- */
+        #gameContainer {
+            position: relative;         /* Нужно для позиционирования message */
+            border: 2px solid #555;     /* Темно-серая рамка */
+            background-color: #e0f7fa; /* Светло-голубой фон канваса */
+            width: 500px;               /* Ширина игрового поля */
+            height: 400px;              /* Высота игрового поля */
+            cursor: crosshair;          /* Курсор в виде прицела */
+            margin-top: 15px;           /* Отступ сверху */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Небольшая тень */
         }
+
+        #gameCanvas {
+            display: block;             /* Убирает лишний отступ под канвасом */
+            width: 100%;                /* Канвас занимает всю ширину контейнера */
+            height: 100%;               /* Канвас занимает всю высоту контейнера */
+        }
+
+        /* --- Стили для интерфейса (счет, время, рекорд) --- */
+        #ui {
+            margin-top: 15px;           /* Отступ сверху */
+            text-align: center;         /* Текст по центру */
+            width: 500px;               /* Ширина блока UI как у канваса */
+            padding: 10px;              /* Внутренние отступы */
+            background-color: #fff;     /* Белый фон для блока UI */
+            border-radius: 8px;         /* Скругленные углы */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Тень */
+        }
+
+        #ui span { /* Стили для текстовых элементов в UI */
+            margin: 0 10px;             /* Горизонтальные отступы между элементами */
+            font-size: 1.1em;           /* Немного увеличенный шрифт */
+            color: #555;                /* Цвет текста */
+        }
+
+        #ui span span { /* Стили для самих значений (счет, время, рекорд) */
+            font-weight: bold;          /* Жирный шрифт для цифр */
+            color: #007bff;             /* Синий цвет для значений */
+        }
+
+        /* --- Стили для прогресс-бара времени --- */
+        #progress-bar-container {
+            width: 100%;                /* На всю ширину UI блока */
+            background-color: #ddd;     /* Фон контейнера прогресс-бара */
+            height: 12px;               /* Высота прогресс-бара */
+            margin-top: 8px;            /* Отступ сверху */
+            border-radius: 6px;         /* Скругленные углы */
+            overflow: hidden;           /* Скрывает выходящую за рамки заливку */
+        }
+
+        #progress-bar-fill {
+            height: 100%;               /* Заливка на всю высоту */
+            background-color: #28a745;  /* Зеленый цвет заливки */
+            width: 100%;                /* Начальная ширина 100% */
+            transition: width 0.5s linear; /* Плавный переход ширины */
+            border-radius: 6px;         /* Скругление (видно при уменьшении) */
+        }
+
+        /* --- Стили для сообщения о конце игры --- */
         #message {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 24px;
-            display: none;
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 20px;
-            border-radius: 10px;
+            position: absolute;         /* Абсолютное позиционирование внутри gameContainer */
+            top: 50%;                   /* Центрирование по вертикали */
+            left: 50%;                  /* Центрирование по горизонтали */
+            transform: translate(-50%, -50%); /* Точное центрирование */
+            background: rgba(0, 0, 0, 0.8); /* Полупрозрачный темный фон */
+            color: white;               /* Белый цвет текста */
+            padding: 30px;              /* Увеличенные внутренние отступы */
+            border-radius: 10px;        /* Скругленные углы */
+            text-align: center;         /* Текст по центру */
+            display: none;              /* Изначально скрыто */
+            z-index: 10;                /* Поверх канваса */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); /* Тень для сообщения */
         }
-        button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-family: 'Press Start 2P', cursive;
-            background-color: #4CAF50;
-            border: none;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-            border-radius: 5px;
+
+        #message h2 {
+            margin-top: 0;              /* Убираем верхний отступ у заголовка */
+            color: #ffc107;             /* Желтый цвет для заголовка "Время вышло!" */
         }
-        button:hover {
-            background-color: #45a049;
+
+        #message p {
+            font-size: 1.1em;           /* Размер шрифта для счета */
+            margin: 10px 0;             /* Отступы для параграфов */
         }
-        .progress-bar {
-            width: 300px;
-            height: 15px;
-            background-color: #555;
-            margin-top: 10px;
-            border-radius: 5px;
+
+        /* --- Стили для кнопки перезапуска --- */
+        button#restart-button { /* Уточняем селектор для кнопки */
+            padding: 12px 25px;         /* Увеличенные отступы кнопки */
+            font-size: 1.1em;           /* Увеличенный шрифт кнопки */
+            cursor: pointer;            /* Курсор-указатель */
+            margin-top: 20px;           /* Отступ сверху */
+            background-color: #28a745;  /* Зеленый фон кнопки */
+            color: white;               /* Белый текст кнопки */
+            border: none;               /* Без рамки */
+            border-radius: 5px;         /* Скругленные углы */
+            transition: background-color 0.3s ease; /* Плавное изменение фона при наведении */
         }
-        .progress-bar-fill {
-            width: 100%;
-            height: 100%;
-            background-color: green;
-            border-radius: 5px;
-            transition: width 1s linear;
+
+        button#restart-button:hover {
+            background-color: #218838;  /* Более темный зеленый при наведении */
         }
+
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
-    <h1>Мухобойка 8-битная 🪰🔨</h1>
-    <p>Лови мух мухобойкой! Нажми, чтобы ударить.</p>
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
-    <div class="progress-bar">
-        <div id="progress-bar-fill" class="progress-bar-fill"></div>
-    </div>
-    <div id="score-container">Очки: <span id="score">0</span></div>
-    <div id="timer-container">⏳ Время: <span id="timer">30</span> сек</div>
-    <div id="message">
-        Игра окончена! Счёт: <span id="final-score">0</span><br>
-        Лучший результат: <span id="high-score">0</span>
-        <button id="restart-button">Перезапустить</button>
+
+    <h1>Убей Муху!</h1>
+
+    <div id="ui">
+        <span>Счет: <span id="score">0</span></span> |
+        <span>Время: <span id="timer">30</span> сек</span> |
+        <span>Рекорд: <span id="high-score-display">0</span></span>
+        <div id="progress-bar-container">
+            <div id="progress-bar-fill"></div>
+        </div>
     </div>
 
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="500" height="400"></canvas>
 
-        let score = 0;
-        let timeLeft = 30;
-        let gameOver = false;
-        let difficultyLevel = 1; // Уровень сложности
-        let flySpeedMultiplier = 1; // Множитель скорости мухи
-        let flySize = 40; // Размер мухи
-        let comboCounter = 0; // Счётчик комбо
-        let lastHitTime = Date.now(); // Время последнего попадания
-        let highScore = localStorage.getItem('highScore') || 0; // Таблица рекордов
+        <div id="message">
+            <h2>Время вышло!</h2>
+            <p>Ваш счет: <span id="final-score">0</span></p>
+            <p>Лучший счет: <span id="high-score-message">0</span></p>
+            <button id="restart-button">Играть снова</button>
+        </div>
+    </div>
 
-        const fly = { x: Math.random() * (canvas.width - 40), y: Math.random() * (canvas.height - 40), speed: 2 };
-        let swatterAnimation = false;
+    <script src="game.js"></script>
 
-        const flyImage = new Image();
-        flyImage.src = 'https://i.imgur.com/Qc3pQ2t.png'; // Fly icon
-
-        const swatterImage = new Image();
-        swatterImage.src = 'https://i.imgur.com/YhTG8xZ.png'; // Swatter icon
-
-        const hitSound = new Audio('hit-sound.mp3'); // Звук удара
-        const missSound = new Audio('miss-sound.mp3'); // Звук промаха
-        const bgMusic = new Audio('background-music.mp3'); // Фоновая музыка
-        bgMusic.loop = true;
-        bgMusic.volume = 0.3; // Громкость фона на 30%
-
-        flyImage.onload = () => {
-            drawFly();
-            setInterval(countdown, 1000); // Таймер начинается после загрузки изображений
-            setInterval(moveFly, 1000 / difficultyLevel); // Перемещение мухи каждые 1000/уровень сложности
-            updateProgressBar(); // Обновление индикатора времени
-        };
-
-        const drawFly = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(flyImage, fly.x, fly.y, flySize, flySize);
-
-            if (swatterAnimation) {
-                ctx.save();
-                ctx.translate(mouseX, mouseY);
-                ctx.rotate(-0.3); // Наклон мухобойки при ударе
-                ctx.drawImage(swatterImage, -flySize / 2, -flySize / 2, flySize, flySize);
-                ctx.restore();
-                setTimeout(() => { swatterAnimation = false; drawFly(); }, 100);
-            }
-        };
-
-        const moveFly = () => {
-            if (gameOver) return;
-            fly.x = Math.random() * (canvas.width - flySize); // Случайное перемещение по X
-            fly.y = Math.random() * (canvas.height - flySize); // Случайное перемещение по Y
-            drawFly(); // Перерисовка мухи после перемещения
-        };
-
-        const hitFly = (event) => {
-            if (gameOver) return;
-            const rect = canvas.getBoundingClientRect();
-            mouseX = event.clientX - rect.left;
-            mouseY = event.clientY - rect.top;
-            if (mouseX >= fly.x && mouseX <= fly.x + flySize &&
-                mouseY >= fly.y && mouseY <= fly.y + flySize) {
-                score++;
-                document.getElementById("score").textContent = score;
-
-                // Бонус за комбо
-                comboCounter++;
-                if ((Date.now() - lastHitTime) < 500) { // Комбо за быстрый удар
-                    score += 2;
-                    document.getElementById("score").textContent = score;
-                }
-                lastHitTime = Date.now(); // Обновляем время последнего удара
-
-                // Увеличение скорости мухи
-                flySpeedMultiplier = Math.min(flySpeedMultiplier + 0.05, 3);
-                fly.size = Math.min(flySize + 10, 80); // Увеличение размера мухи
-
-                moveFly();
-                hitSound.play();
-                swatterAnimation = true;
-            } else {
-                missSound.play();
-            }
-        };
-
-        const countdown = () => {
-            if (timeLeft > 0) {
-                timeLeft--;
-                document.getElementById("timer").textContent = timeLeft;
-                updateProgressBar(); // Обновление индикатора времени
-            } else {
-                gameOver = true;
-                document.getElementById("message").style.display = "block";
-                document.getElementById("final-score").textContent = score;
-                document.getElementById("high-score").textContent = highScore;
-                saveHighScore(score); // Сохранение лучшего результата
-            }
-        };
-
-        const updateProgressBar = () => {
-            const progressBarFill = document.getElementById('progress-bar-fill');
-            progressBarFill.style.width = `${(timeLeft / 30) * 100}%`;
-        };
-
-        const saveHighScore = (newScore) => {
-            if (newScore > highScore) {
-                highScore = newScore;
-                localStorage.setItem('highScore', highScore);
-            }
-        };
-
-        canvas.addEventListener("click", hitFly);
-
-        document.getElementById("restart-button").addEventListener("click", () => {
-            score = 0;
-            timeLeft = 30;
-            difficultyLevel = 1;
-            flySpeedMultiplier = 1;
-            flySize = 40;
-            comboCounter = 0;
-            lastHitTime = Date.now();
-            gameOver = false;
-            document.getElementById("score").textContent = score;
-            document.getElementById("timer").textContent = timeLeft;
-            document.getElementById("message").style.display = "none";
-            drawFly();
-        });
-    </script>
 </body>
 </html>
